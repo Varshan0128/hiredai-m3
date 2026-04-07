@@ -1,0 +1,7 @@
+{
+  "name": "@hiredai/utils",
+  "version": "0.0.1",
+  "main": "./src/index.ts",
+  "dependencies": { "@hiredai/types": "*" },
+  "devDependencies": { "typescript": "^5.4.5", "@types/node": "^20.14.2" }
+}

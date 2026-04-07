@@ -3,9 +3,12 @@
     "version": "1.0.0",
     "description": "Root package to manage Hired AI full stack application",
     "scripts": {
+        "frontend": "cd Frontend/HiredAI_RBConnected && npm run dev",
+        "backend": "cd Backend/Models/suggestionapiconctd && uvicorn app:app --reload --port 8000",
+        "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
         "postinstall": "npm install concurrently",
         "start": "concurrently \"npm run start:resume-builder\" \"npm run start:heired-ai\" \"npm run start:python\" \"npm run start:ats\" \"npm run start:frontend\"",
-        "start:resume-builder": "cd Backend/Spring_Boot/RESUMEBUILDER/RESUMEBUILDER && mvnw.cmd spring-boot:run",
+        "start:resume-builder": "cd Backend/Spring_Boot/RESUMEBUILDER/RESUMEBUILDER && mvnw.cmd spring-boot:run \"-Dspring-boot.run.profiles=local\"",
         "start:heired-ai": "cd Backend/Spring_Boot/heiredAi/heiredAi && mvnw.cmd spring-boot:run \"-Dspring-boot.run.profiles=local\"",
         "start:python": "cd Backend/Models/suggestionapiconctd && python app.py",
         "start:ats": "cd Backend/Models/ats_fixed/backend && python api.py",

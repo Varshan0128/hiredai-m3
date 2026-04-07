@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SourceProvider {
+  adzuna
+  jooble
+}
+
+enum WorkMode {
+  remote
+  hybrid
+  onsite
+}
+
+enum CompanyType {
+  mnc
+  startup
+  product_based
+  service_based
+  unknown
+}
+
+enum ExperienceLevel {
+  entry
+  junior
+  mid
+  senior
+  lead
+  executive
+}
+
+enum ApplicationStatus {
+  discovered
+  matched
+  skipped
+  needs_review
+  approved
+  rejected
+  scheduled
+  submitting
+  submitted
+  failed
+  retrying
+  cancelled
+}
+
+enum MatchDecision {
+  auto_apply
+  needs_review
+  skip
+}
+
+enum SubmissionMode {
+  direct_source_apply
+  mocked_structured_submit
+}
+
+enum NotificationType {
+  auto_apply_enabled
+  jobs_need_review
+  application_scheduled
+  application_submitted
+  submission_failed
+  weekly_summary
+}
+
+enum QuestionType {
+  why_this_company
+  career_goals
+  salary_expectation
+  availability
+  cover_letter
+  custom
+}
+
+enum ApplicationEventType {
+  created
+  matched
+  decision_made
+  review_requested
+  approved
+  rejected
+  scheduled
+  submitting
+  submitted
+  failed
+  retrying
+  cancelled
+  status_changed
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resumes         Resume[]
+  preference      AutoApplyPreference?
+  matchResults    MatchResult[]
+  applications    Application[]
+  answerTemplates UserAnswerTemplate[]
+  notifications   Notification[]
+
+  @@index([email])
+}
+
+model Resume {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  fileUrl       String
+  extractedText String?  @db.Text
+  roleTag       String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchResults MatchResult[]
+  applications Application[]
+
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
+model AutoApplyPreference {
+  id                   String            @id @default(cuid())
+  userId               String            @unique
+  enabled              Boolean           @default(false)
+  fullyAutomatic       Boolean           @default(false)
+  targetRoles          String[]
+  preferredLocations   String[]
+  minSalary            Float?
+  maxSalary            Float?
+  workModes            WorkMode[]
+  companyTypes         CompanyType[]
+  experienceLevels     ExperienceLevel[]
+  postingDateFrom      DateTime?
+  postingDateTo        DateTime?
+  maxApplicationsPerDay  Int             @default(10)
+  maxApplicationsPerWeek Int             @default(40)
+  minimumMatchScore    Float             @default(70)
+  timezone             String            @default("UTC")
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id                 String           @id @default(cuid())
+  externalId         String
+  sourceProvider     SourceProvider
+  providerJobUrl     String?
+  applyUrl           String?
+  companyName        String
+  title              String
+  description        String           @db.Text
+  location           String?
+  normalizedLocation String?
+  workMode           WorkMode?
+  salaryMin          Float?
+  salaryMax          Float?
+  currency           String?          @default("USD")
+  companyType        CompanyType?
+  experienceLevel    ExperienceLevel?
+  skills             String[]
+  postedAt           DateTime?
+  expiresAt          DateTime?
+  isActive           Boolean          @default(true)
+  rawPayload         Json
+  dedupeKey          String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  matchResults MatchResult[]
+  applications Application[]
+
+  @@unique([externalId, sourceProvider])
+  @@index([sourceProvider])
+  @@index([isActive])
+  @@index([dedupeKey])
+  @@index([postedAt])
+}
+
+model MatchResult {
+  id                  String        @id @default(cuid())
+  userId              String
+  jobId               String
+  resumeId            String?
+  matchScore          Float
+  roleFitScore        Float         @default(0)
+  locationFitScore    Float         @default(0)
+  salaryFitScore      Float         @default(0)
+  skillFitScore       Float         @default(0)
+  experienceFitScore  Float         @default(0)
+  companyTypeFitScore Float         @default(0)
+  workModeFitScore    Float         @default(0)
+  explanation         Json
+  decision            MatchDecision
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id])
+
+  @@unique([userId, jobId])
+  @@index([userId, decision])
+  @@index([userId, matchScore])
+}
+
+model Application {
+  id                    String            @id @default(cuid())
+  userId                String
+  jobId                 String
+  resumeId              String?
+  status                ApplicationStatus @default(discovered)
+  sourceProvider        SourceProvider
+  requiresReview        Boolean           @default(false)
+  scheduledAt           DateTime?
+  appliedAt             DateTime?
+  submissionMode        SubmissionMode?
+  failureReason         String?           @db.Text
+  submittedPayload      Json?
+  externalApplicationId String?
+  retryCount            Int               @default(0)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id])
+  events ApplicationEvent[]
+
+  @@unique([userId, jobId])
+  @@index([userId, status])
+  @@index([status, scheduledAt])
+}
+
+model ApplicationEvent {
+  id            String               @id @default(cuid())
+  applicationId String
+  type          ApplicationEventType
+  message       String
+  metadata      Json?
+  createdAt     DateTime             @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model UserAnswerTemplate {
+  id                 String       @id @default(cuid())
+  userId             String
+  questionType       QuestionType
+  title              String
+  content            String       @db.Text
+  approvedForAutoUse Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, questionType])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String           @db.Text
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}

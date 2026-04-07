@@ -105,7 +105,7 @@ export default function DashboardNew({ onNavigate }: DashboardNewProps) {
             <aside className="hidden lg:block w-80 border-r-2 border-neutral-800 bg-white">
               <nav className="sticky top-20 p-6 space-y-2">
                 <NavItem icon={<FileText size={20} />} label="Resume Builder" active onClick={() => onNavigate('resume-builder')} />
-                <NavItem icon={<Briefcase size={20} />} label="Job Discovery" onClick={() => onNavigate('upload-resume')} />
+                <NavItem icon={<Briefcase size={20} />} label="Job Discovery" onClick={() => onNavigate('jobs')} />
               </nav>
             </aside>
 
@@ -139,7 +139,7 @@ export default function DashboardNew({ onNavigate }: DashboardNewProps) {
                     title="Job Discovery"
                     description="Find your next opportunity"
                     accentColor="#FF7F7F"
-                    onClick={() => onNavigate('upload-resume')}
+                    onClick={() => onNavigate('jobs')}
                   />
                 </div>
               </section>
@@ -179,7 +179,7 @@ export default function DashboardNew({ onNavigate }: DashboardNewProps) {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-neutral-800 z-40">
         <div className="grid grid-cols-2 gap-1 p-2">
           <MobileNavItem icon={<FileText size={20} />} label="Resume" onClick={() => onNavigate('jobrole')} />
-          <MobileNavItem icon={<Briefcase size={20} />} label="Jobs" onClick={() => onNavigate('upload-resume')} />
+          <MobileNavItem icon={<Briefcase size={20} />} label="Jobs" onClick={() => onNavigate('jobs')} />
         </div>
       </div>
     </div>

@@ -1,0 +1,31 @@
+{
+  "name": "hiredai-autoapply",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "db:generate": "turbo run db:generate --filter=@hiredai/db",
+    "db:migrate": "turbo run db:migrate --filter=@hiredai/db",
+    "db:seed": "turbo run db:seed --filter=@hiredai/db",
+    "db:studio": "turbo run db:studio --filter=@hiredai/db"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.6",
+    "typescript": "^5.4.5",
+    "@types/node": "^20.14.2",
+    "prettier": "^3.3.2",
+    "eslint": "^8.57.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "packageManager": "yarn@1.22.22"
+}

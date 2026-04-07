@@ -1,0 +1,43 @@
+{
+  "name": "@hiredai/worker",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "@hiredai/db": "*",
+    "@hiredai/types": "*",
+    "@hiredai/utils": "*",
+    "bullmq": "^5.10.0",
+    "ioredis": "^5.4.1",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.12",
+    "ts-jest": "^29.1.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src"],
+    "testRegex": ".*\\.spec\\.ts$",
+    "moduleNameMapper": {
+      "@hiredai/types": "<rootDir>/../../packages/types/src/index.ts",
+      "@hiredai/utils": "<rootDir>/../../packages/utils/src/index.ts"
+    }
+  }
+}

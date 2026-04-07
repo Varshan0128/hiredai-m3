@@ -33,6 +33,8 @@ import ResumeEditor from "./components/ResumeEditor";
 import ResumeResults from "./components/ResumeResults";
 import JobDiscoveryNew from "./components/JobDiscoveryNew";
 import ResumeUpload from "./components/ResumeUpload";
+import ResumeProcessing from "./components/ResumeProcessing";
+import PsychometricFlow from "./components/PsychometricFlow";
 import { Toaster } from "sonner";
 import SettingsMain from "./components/SettingsMain";
 import ResumeBuilderApp from "./resume-builder/ResumeBuilderApp";
@@ -40,9 +42,23 @@ import OAuthSuccess from "./components/OAuthSuccess";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import {
+  type PsychometricModule,
+  getPsychometricRoute,
+  isPsychometricComplete,
+} from "./utils/psychometric";
 
 export type Page = string;
 const EXPLORE_SCROLL_NAV_EVENT = "hired-ai:explore-scroll-nav";
+
+if (import.meta.env.DEV) {
+  const forceReset = false;
+
+  if (forceReset) {
+    localStorage.removeItem("psychometric_job_completed");
+    localStorage.removeItem("psychometric_resume_completed");
+  }
+}
 
 function RouteScrollManager() {
   const { pathname } = useLocation();
@@ -54,13 +70,91 @@ function RouteScrollManager() {
   return null;
 }
 
+function PsychometricFeatureRoute({
+  module,
+  element,
+}: {
+  module: PsychometricModule;
+  element: JSX.Element;
+}) {
+  if (!isPsychometricComplete(module)) {
+    return <Navigate to={getPsychometricRoute(module)} replace />;
+  }
+
+  return element;
+}
+
+function JobsRoute({
+  element,
+}: {
+  element: JSX.Element;
+}) {
+  const hasJobPsychometric = isPsychometricComplete("job_discovery");
+  const hasResumeAnalysis = Boolean(localStorage.getItem("resumeAnalysis"));
+
+  if (!hasJobPsychometric) {
+    return <Navigate to="/psychometric/job" replace />;
+  }
+
+  if (!hasResumeAnalysis) {
+    return <Navigate to="/upload-resume" replace />;
+  }
+
+  return element;
+}
+
+function JobDiscoveryUploadRoute({
+  element,
+}: {
+  element: JSX.Element;
+}) {
+  if (!isPsychometricComplete("job_discovery")) {
+    return <Navigate to="/psychometric/job" replace />;
+  }
+
+  return element;
+}
+
 export default function App() {
   const navigate = useNavigate();
   const { isAuthenticated, status } = useAuth();
 
+  const navigateWithLog = (route: string) => {
+    console.log("Navigating to:", route);
+    navigate(route);
+  };
+
+  const handleResumeBuilderClick = () => {
+    console.log("Navigating to psychometric first");
+    navigateWithLog("/psychometric/resume");
+  };
+
+  const handleJobDiscoveryClick = () => {
+    console.log("Navigating to psychometric first");
+    navigateWithLog("/psychometric/job");
+  };
+
   const handleNavigate = (page: string) => {
-    if (page === "home") navigate("/");
-    else navigate(`/${page}`);
+    if (page === "home") {
+      navigateWithLog("/");
+      return;
+    }
+
+    if (
+      page === "resume-builder" ||
+      page === "jobrole" ||
+      page === "upload-resume"
+    ) {
+      handleResumeBuilderClick();
+      return;
+    }
+
+    if (page === "job-discovery" || page === "jobs") {
+      handleJobDiscoveryClick();
+      return;
+    }
+
+    navigateWithLog(`/${page}`);
   };
 
   return (
@@ -83,9 +177,27 @@ export default function App() {
                 )
               }
             />
+            <Route path="/psychometric/resume" element={<PsychometricFlow module="resume_builder" />} />
+            <Route path="/psychometric/job" element={<PsychometricFlow module="job_discovery" />} />
              
-            <Route path="/jobrole/*" element={<ResumeBuilderApp />} />
-            <Route path="/resume-builder/*" element={<ResumeBuilderApp />} />
+            <Route
+              path="/jobrole/*"
+              element={
+                <PsychometricFeatureRoute
+                  module="resume_builder"
+                  element={<ResumeBuilderApp />}
+                />
+              }
+            />
+            <Route
+              path="/resume-builder/*"
+              element={
+                <PsychometricFeatureRoute
+                  module="resume_builder"
+                  element={<ResumeBuilderApp />}
+                />
+              }
+            />
              
             <Route path="/templates" element={<Navigate to="/resume-builder" replace />} />
             <Route path="/editor" element={<ResumeEditor onNavigate={handleNavigate} />} />
@@ -95,8 +207,30 @@ export default function App() {
             <Route path="/resume3" element={<ResumeBuilder3 onNavigate={handleNavigate} />} />
             
             <Route path="/results" element={<ResumeResults onNavigate={handleNavigate} />} />
-            <Route path="/upload-resume" element={<ResumeUpload />} />
-            <Route path="/jobs" element={<JobDiscoveryNew onNavigate={handleNavigate} />} />
+            <Route
+              path="/upload-resume"
+              element={
+                <JobDiscoveryUploadRoute
+                  element={<ResumeUpload />}
+                />
+              }
+            />
+            <Route
+              path="/resume-processing"
+              element={
+                <JobDiscoveryUploadRoute
+                  element={<ResumeProcessing />}
+                />
+              }
+            />
+            <Route
+              path="/jobs"
+              element={
+                <JobsRoute
+                  element={<JobDiscoveryNew onNavigate={handleNavigate} />}
+                />
+              }
+            />
             <Route path="/settings" element={<SettingsMain onNavigate={handleNavigate} />} />
             <Route path="/oauth-success" element={<OAuthSuccess />} />
 

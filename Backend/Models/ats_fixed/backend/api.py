@@ -886,6 +886,6 @@ if __name__ == '__main__':
     print("   POST /api/score - Now accepts job_id parameter")
     print("="*60 + "\n")
     
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host=ATS_BIND_HOST, port=ATS_BIND_PORT, debug=True)
 
 

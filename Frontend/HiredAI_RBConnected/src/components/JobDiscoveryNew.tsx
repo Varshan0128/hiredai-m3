@@ -114,6 +114,7 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
   const [salaryRange, setSalaryRange] = useState([0, 200]);
 
   useEffect(() => {
+    console.log("➡️ Jobs page loaded");
     const storedData = readStoredJobData();
     console.log('Stored Data:', localStorage.getItem('jobData'));
     const rawJobs = Array.isArray(storedData)
@@ -168,17 +169,21 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b-2 border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="relative py-4 lg:py-5">
             {/* Back Button */}
-            <PageBackButton fallbackTo="/dashboard" label="Dashboard" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2">
+              <PageBackButton fallbackTo="/dashboard" label="Dashboard" />
+            </div>
 
             {/* Title */}
-            <h1 className="font-['Poppins:Bold',sans-serif] text-xl lg:text-2xl text-neutral-800">
-              Job Discovery
-            </h1>
+            <div className="flex flex-col items-center justify-center text-center mt-4 mb-6">
+              <h1 className="text-2xl font-semibold text-neutral-800">
+                Job Discovery
+              </h1>
+            </div>
 
             {/* Saved Count */}
-            <div className="flex items-center gap-2">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <Bookmark size={20} className="text-purple-600" />
               <span className="font-['Poppins:Bold',sans-serif] text-neutral-800">
                 {jobs.filter((j) => j.saved).length}
@@ -189,7 +194,7 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 lg:pt-20">
+      <main className="pt-36 lg:pt-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Search & Filters Bar */}
           <div className="mb-6 space-y-4">
