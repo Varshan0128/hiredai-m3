@@ -12,7 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner@2.0.3';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
 import { Slider } from './ui/slider';
 import PageBackButton from './PageBackButton';
@@ -44,6 +44,14 @@ interface StoredJobData {
   jobs?: unknown[];
 }
 
+function isLegacyPlaceholderJob(job: unknown): boolean {
+  if (!job || typeof job !== 'object') return false;
+  const record = job as Record<string, unknown>;
+  const title = String(record.title ?? record.job_title ?? '').trim().toLowerCase();
+  const company = String(record.company ?? record.company_name ?? '').trim().toLowerCase();
+  return /^software developer role \d+$/.test(title) || company === 'unavailable source';
+}
+
 function getValidApplyLink(value: unknown): string | undefined {
   const link = String(value ?? '').trim();
   if (!link) return undefined;
@@ -58,6 +66,21 @@ function getValidApplyLink(value: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+function extractApplyLink(record: Record<string, unknown>): string | undefined {
+  const applyOptions = Array.isArray(record.apply_options) ? record.apply_options : [];
+  const firstApplyOption = applyOptions.length > 0 && applyOptions[0] && typeof applyOptions[0] === 'object'
+    ? (applyOptions[0] as Record<string, unknown>).link
+    : undefined;
+
+  return getValidApplyLink(
+    record.link ??
+    record.apply_link ??
+    firstApplyOption ??
+    record.share_link ??
+    record.url
+  );
 }
 
 function inferJobType(job: Record<string, unknown>): Job['type'] {
@@ -89,7 +112,7 @@ function normalizeJob(job: unknown, index: number): Job | null {
           .split(',')
           .map((value) => value.trim())
           .filter(Boolean);
-  const link = getValidApplyLink(record.link ?? record.url);
+  const link = extractApplyLink(record);
 
   return {
     id: String(record.id ?? record.job_id ?? link ?? record['ID'] ?? `${title}-${index}`),
@@ -139,7 +162,13 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
       : Array.isArray(storedData?.jobs)
         ? storedData.jobs
         : [];
-    const storedJobs = Array.isArray(rawJobs)
+    const containsLegacyPlaceholders = rawJobs.some(isLegacyPlaceholderJob);
+    if (containsLegacyPlaceholders) {
+      localStorage.removeItem('jobData');
+      localStorage.removeItem('resumeAnalysis');
+    }
+
+    const storedJobs = Array.isArray(rawJobs) && !containsLegacyPlaceholders
       ? rawJobs.map(normalizeJob).filter((job): job is Job => job !== null)
       : [];
 
@@ -321,6 +350,9 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
                 <DialogTitle className="font-['Poppins:Bold',sans-serif] text-2xl">
                   {selectedJob.title}
                 </DialogTitle>
+                <DialogDescription>
+                  Job details and description.
+                </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-6">
@@ -348,16 +380,6 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <h4 className="font-['Poppins:Bold',sans-serif] text-neutral-800 mb-2">
-                    Description
-                  </h4>
-                  <p className="font-['Poppins:Regular',sans-serif] text-neutral-700">
-                    {selectedJob.description}
-                  </p>
-                </div>
-
                 {/* Requirements */}
                 <div>
                   <h4 className="font-['Poppins:Bold',sans-serif] text-neutral-800 mb-3">
@@ -380,12 +402,6 @@ export default function JobDiscoveryNew({ onNavigate }: JobDiscoveryNewProps) {
                     </p>
                   )}
                 </div>
-
-                {!selectedJobHasApplyLink ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                    Direct application is unavailable for this fallback job.
-                  </div>
-                ) : null}
 
                 {/* Actions */}
                 <div className="flex gap-3 pt-4">

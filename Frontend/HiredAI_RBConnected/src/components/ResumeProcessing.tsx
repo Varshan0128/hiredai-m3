@@ -44,6 +44,20 @@ type ParsedResume = {
   resumeText: string;
 };
 
+type StoredJobRecord = {
+  id?: string;
+  title?: string;
+  company?: string;
+  location?: string;
+  type?: string;
+  salary?: string;
+  experience?: string;
+  posted?: string;
+  description?: string;
+  requirements?: string[];
+  aiRisk?: number;
+};
+
 type MatchedJob = {
   title: string;
   matchPct: number;
@@ -51,6 +65,9 @@ type MatchedJob = {
   type: string;
   location: string;
   aiRisk: number;
+  company?: string;
+  salary?: string;
+  posted?: string;
 };
 
 type DemandResult = {
@@ -135,6 +152,20 @@ function normalizeSkill(raw: string) {
   return raw.trim().replace(/\s+/g, " ");
 }
 
+function inferDomainFromJob(job: StoredJobRecord) {
+  const source = [job.title, job.description, ...(job.requirements ?? [])]
+    .filter(Boolean)
+    .join(" ");
+  return detectDomain(source);
+}
+
+function readStoredJobs(): StoredJobRecord[] {
+  const value = readJsonFromStorage<StoredJobRecord[] | { jobs?: StoredJobRecord[] }>("jobData");
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.jobs)) return value.jobs;
+  return [];
+}
+
 function detectDomain(resumeText: string, storedDomain?: string | null) {
   const hint = (storedDomain || "").toLowerCase();
   if (hint.includes("design")) return "design";
@@ -160,14 +191,20 @@ function extractResumeSource() {
   const resumeAnalysis = readJsonFromStorage<{ resumeText?: string; selectedDomain?: string }>("resumeAnalysis");
   const jobData = readJsonFromStorage<{ resumeText?: string; domain?: string }>("jobData");
   const profile = readJsonFromStorage<{ topTraits?: string[] }>("psychometric_profile");
+  const storedJobs = readStoredJobs();
 
   const builderSkills = builderFlow?.editorFormData?.skills ?? [];
   const profileSkills = profile?.topTraits?.map(titleCase) ?? [];
+  const storedJobText = storedJobs
+    .flatMap((job) => [job.title, job.company, job.description, ...(job.requirements ?? [])])
+    .filter(Boolean)
+    .join(" ");
   const fallbackText = [
     builderFlow?.analysisResumeText,
     builderFlow?.selectedRole,
     builderFlow?.editorFormData?.name,
     builderFlow?.editorFormData?.education,
+    storedJobText,
     ...builderSkills,
     ...profileSkills,
   ]
@@ -183,6 +220,7 @@ function extractResumeSource() {
       "Software developer with experience in React JavaScript TypeScript APIs teamwork problem solving and modern product development.",
     selectedDomain:
       builderFlow?.selectedRole || resumeAnalysis?.selectedDomain || jobData?.domain || null,
+    storedJobs,
   };
 }
 
@@ -212,8 +250,23 @@ function parseResume(resumeText: string, selectedDomain?: string | null): Parsed
   };
 }
 
-function matchJobs(parsed: ParsedResume): MatchedJob[] {
-  return JOB_CORPUS.map((job) => {
+function matchJobs(parsed: ParsedResume, storedJobs: StoredJobRecord[]): MatchedJob[] {
+  const jobSource = storedJobs.length
+    ? storedJobs.map((job) => ({
+        title: job.title ?? "Untitled role",
+        type: job.type ?? "Remote",
+        location: job.location ?? "India",
+        domain: inferDomainFromJob(job),
+        requiredSkills: Array.isArray(job.requirements) && job.requirements.length ? job.requirements : parsed.topSkills,
+        reason: job.description ?? "Good alignment with your current skill profile.",
+        aiRisk: typeof job.aiRisk === "number" ? job.aiRisk : 32,
+        company: job.company,
+        salary: job.salary,
+        posted: job.posted,
+      }))
+    : JOB_CORPUS;
+
+  const matchedJobs = jobSource.map((job) => {
     const overlap = job.requiredSkills.filter((skill) =>
       parsed.topSkills.some((value) => value.toLowerCase() === skill.toLowerCase()),
     ).length;
@@ -228,8 +281,17 @@ function matchJobs(parsed: ParsedResume): MatchedJob[] {
       type: job.type,
       location: job.location,
       aiRisk: job.aiRisk,
+      company: "company" in job ? job.company : undefined,
+      salary: "salary" in job ? job.salary : undefined,
+      posted: "posted" in job ? job.posted : undefined,
     };
-  })
+  });
+
+  if (storedJobs.length) {
+    return matchedJobs.slice(0, Math.min(matchedJobs.length, 10));
+  }
+
+  return matchedJobs
     .sort((a, b) => b.matchPct - a.matchPct)
     .slice(0, 5);
 }
@@ -389,9 +451,9 @@ function estimateTimeToHire(score: number, demandScore: number) {
 }
 
 function runRoleRadarAnalysis(): AnalysisResult {
-  const { resumeText, selectedDomain } = extractResumeSource();
+  const { resumeText, selectedDomain, storedJobs } = extractResumeSource();
   const parsed = parseResume(resumeText, selectedDomain);
-  const jobs = matchJobs(parsed);
+  const jobs = matchJobs(parsed, storedJobs);
   const demand = analyzeDemand(parsed);
   const risk = scoreAiRisk(parsed);
   const future = predictFuture(risk);
@@ -600,6 +662,11 @@ export default function ResumeProcessing() {
                           <p className="font-['Poppins:Bold',sans-serif] text-lg text-neutral-900">
                             {job.title}
                           </p>
+                          {job.company ? (
+                            <p className="mt-1 font-['Poppins:Regular',sans-serif] text-sm text-neutral-500">
+                              {job.company}
+                            </p>
+                          ) : null}
                           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-neutral-600">
                             <span>{job.location}</span>
                             <span className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-['Poppins:Medium',sans-serif] text-neutral-700">
@@ -617,6 +684,11 @@ export default function ResumeProcessing() {
                       <p className="mt-2 font-['Poppins:Medium',sans-serif] text-sm text-neutral-600">
                         Role risk: {job.aiRisk}%
                       </p>
+                      {job.salary || job.posted ? (
+                        <p className="mt-1 font-['Poppins:Regular',sans-serif] text-xs text-neutral-500">
+                          {[job.salary, job.posted].filter(Boolean).join(" · ")}
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -636,25 +708,45 @@ export default function ResumeProcessing() {
                     </p>
                   </div>
 
-                  <div className="mt-5 flex items-end justify-between gap-3">
-                    {analysis.timeline.map((point) => (
-                      <div key={point.year} className="flex flex-1 flex-col items-center gap-2">
-                        <div className="flex h-36 w-full items-end rounded-xl bg-neutral-100 px-2 pb-2">
-                          <motion.div
-                            className="w-full rounded-lg bg-black"
-                            initial={{ height: 0 }}
-                            animate={{ height: `${point.riskPct}%` }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
-                          />
-                        </div>
-                        <p className="font-['Poppins:Regular',sans-serif] text-xs text-neutral-500">
-                          {point.year}
-                        </p>
-                        <p className="font-['Poppins:Medium',sans-serif] text-xs text-neutral-700">
-                          {point.riskPct}%
-                        </p>
+                  <div className="mt-5 rounded-2xl border border-neutral-200 p-4">
+                    <div className="mb-3 flex items-center justify-between text-xs text-neutral-500">
+                      <span>AI automation exposure by year</span>
+                      <span>Risk % histogram</span>
+                    </div>
+                    <div className="grid grid-cols-[36px_1fr] gap-3">
+                      <div className="flex h-48 flex-col justify-between text-xs text-neutral-400">
+                        {[100, 75, 50, 25, 0].map((tick) => (
+                          <span key={tick}>{tick}</span>
+                        ))}
                       </div>
-                    ))}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex flex-col justify-between">
+                          {[0, 1, 2, 3, 4].map((line) => (
+                            <div key={line} className="border-t border-dashed border-neutral-200" />
+                          ))}
+                        </div>
+                        <div className="relative flex h-48 items-end justify-between gap-3">
+                          {analysis.timeline.map((point) => (
+                            <div key={point.year} className="flex flex-1 flex-col items-center gap-2">
+                              <div className="flex h-full w-full items-end justify-center px-1">
+                                <motion.div
+                                  className="w-full max-w-[72px] rounded-t-xl bg-black"
+                                  initial={{ height: 0 }}
+                                  animate={{ height: `${point.riskPct}%` }}
+                                  transition={{ duration: 0.4, ease: "easeOut" }}
+                                />
+                              </div>
+                              <p className="font-['Poppins:Regular',sans-serif] text-xs text-neutral-500">
+                                {point.year}
+                              </p>
+                              <p className="font-['Poppins:Medium',sans-serif] text-xs text-neutral-700">
+                                {point.riskPct}% · {point.label}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <p className="mt-4 font-['Poppins:Regular',sans-serif] text-sm text-neutral-600">

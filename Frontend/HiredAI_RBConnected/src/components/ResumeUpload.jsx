@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageBackButton from "./PageBackButton";
 import { processJobs } from "../utils/autoApply";
 
-const acceptedExtensions = [".pdf", ".doc", ".docx"];
+const acceptedExtensions = [".pdf", ".docx"];
 const PYTHON_BASE_URL = (
   import.meta.env.VITE_PYTHON_API_URL ||
   "http://localhost:8000"
@@ -24,7 +24,7 @@ export default function ResumeUpload() {
     if (!file) return;
 
     if (!isSupportedFile(file)) {
-      setError("Please upload a PDF, DOC, or DOCX file.");
+      setError("Please upload a PDF or DOCX file.");
       return;
     }
 
@@ -117,7 +117,7 @@ export default function ResumeUpload() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf,.docx"
               className="hidden"
               onChange={(event) => handleFileChange(event.target.files?.[0])}
             />
