@@ -7,9 +7,9 @@ export interface PsychometricOption {
   label?: string;
   text?: string;
   trait?: string;
-  impact?: Record<string, number>;
-  traits?: Record<string, number>;
-  score?: Record<string, number>;
+  impact?: Record<string, number | string>;
+  traits?: Record<string, number | string>;
+  score?: Record<string, number | string>;
 }
 
 export interface PsychometricQuestion {
@@ -24,6 +24,8 @@ export interface PsychometricQuestion {
 }
 
 export interface PsychometricAnswer {
+  question_id: string;
+  answer: string;
   questionId: string;
   module: PsychometricModule;
   question: string;
@@ -31,6 +33,20 @@ export interface PsychometricAnswer {
   optionLabel: string;
   trait: string;
   impact: Record<string, number>;
+}
+
+export interface PsychometricTraitResult {
+  trait: string;
+  score: number;
+}
+
+export interface PsychometricProfile {
+  traitScores: Record<string, number>;
+  normalized: Record<string, number>;
+  sortedTraits: PsychometricTraitResult[];
+  topTraits: string[];
+  confidence: number;
+  alignmentTrait: string;
 }
 
 const PSYCHOMETRIC_QUESTION_SOURCE = "/psychometric_questions.json";
@@ -154,7 +170,8 @@ export function getOptionLabel(option: PsychometricOption, index: number) {
 }
 
 export function getOptionImpact(option: PsychometricOption) {
-  return option.impact ?? option.traits ?? option.score ?? {};
+  const rawImpact = option.impact ?? option.traits ?? option.score ?? {};
+  return normalizeImpact(rawImpact);
 }
 
 function mapSectorToTrait(sector: string) {
@@ -182,13 +199,14 @@ function mapSectorToTrait(sector: string) {
 export function normalizeTraitName(trait: string) {
   const normalizedTrait = trait.trim().toLowerCase();
 
-  if (normalizedTrait === "leadership" || normalizedTrait === "structured") {
+  if (normalizedTrait === "leadership" || normalizedTrait === "management") {
     return "management";
   }
 
   if (
     normalizedTrait === "creative" ||
     normalizedTrait === "analytical" ||
+    normalizedTrait === "structured" ||
     normalizedTrait === "execution" ||
     normalizedTrait === "management"
   ) {
@@ -228,14 +246,66 @@ export function getOptionTrait(option: PsychometricOption) {
   return normalizeTraitName(topTrait);
 }
 
-export function computePsychometricProfile(answers: PsychometricAnswer[]) {
-  return answers.reduce<Record<string, number>>((profile, answer) => {
-    Object.entries(answer.impact).forEach(([trait, value]) => {
-      profile[trait] = (profile[trait] ?? 0) + value;
+export function normalizeImpact(impact: Record<string, number | string>) {
+  return Object.entries(impact).reduce<Record<string, number>>((normalized, [trait, value]) => {
+    if (trait === "Sector" && typeof value === "string") {
+      const mappedTrait = mapSectorToTrait(value);
+      normalized[mappedTrait] = (normalized[mappedTrait] ?? 0) + 2;
+      return normalized;
+    }
+
+    if (typeof value !== "number" || Number.isNaN(value) || value <= 0) {
+      return normalized;
+    }
+
+    const normalizedTrait = normalizeTraitName(trait);
+    normalized[normalizedTrait] = (normalized[normalizedTrait] ?? 0) + value;
+    return normalized;
+  }, {});
+}
+
+export function computeTraitScores(answers: PsychometricAnswer[]) {
+  return answers.reduce<Record<string, number>>((scores, answer) => {
+    Object.entries(normalizeImpact(answer.impact)).forEach(([trait, value]) => {
+      scores[trait] = (scores[trait] ?? 0) + value;
     });
 
-    return profile;
+    return scores;
   }, {});
+}
+
+export function normalizeTraitScores(traitScores: Record<string, number>) {
+  const total = Object.values(traitScores).reduce((sum, value) => sum + value, 0);
+
+  if (total <= 0) {
+    return {};
+  }
+
+  return Object.entries(traitScores).reduce<Record<string, number>>(
+    (normalized, [trait, value]) => {
+      normalized[trait] = (value / total) * 100;
+      return normalized;
+    },
+    {},
+  );
+}
+
+export function computePsychometricProfile(answers: PsychometricAnswer[]): PsychometricProfile {
+  const traitScores = computeTraitScores(answers);
+  const normalized = normalizeTraitScores(traitScores);
+  const sortedTraits = Object.entries(normalized)
+    .map(([trait, score]) => ({ trait, score }))
+    .sort((a, b) => b.score - a.score);
+  const fallbackTrait = sortedTraits[0]?.trait ?? "execution";
+
+  return {
+    traitScores,
+    normalized,
+    sortedTraits,
+    topTraits: sortedTraits.slice(0, 2).map(({ trait }) => trait),
+    confidence: sortedTraits[0]?.score ?? 0,
+    alignmentTrait: fallbackTrait,
+  };
 }
 
 export function readStoredAnswers(module: PsychometricModule) {

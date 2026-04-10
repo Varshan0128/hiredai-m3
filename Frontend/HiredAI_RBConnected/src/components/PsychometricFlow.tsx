@@ -16,7 +16,6 @@ import {
   getQuestionText,
   getQuestionsByModule,
   loadPsychometricQuestions,
-  normalizeTraitName,
   persistPsychometricCompletion,
   shuffleArray,
 } from "../utils/psychometric";
@@ -29,72 +28,116 @@ interface PsychometricResultSummary {
   headline: string;
   description: string;
   roles?: string[];
-}
-
-function getTopTraitWithFallback(answers: PsychometricAnswer[]) {
-  const scores = answers.reduce<Record<string, number>>((acc, answer) => {
-    const trait = normalizeTraitName(answer.trait || "execution");
-    acc[trait] = (acc[trait] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  console.log("Trait Scores:", scores);
-
-  const topTrait = Object.keys(scores).reduce(
-    (best, current) =>
-      (scores[current] ?? 0) > (scores[best] ?? 0) ? current : best,
-    Object.keys(scores)[0] ?? "execution",
-  );
-
-  return topTrait || "execution";
+  confidence: number;
+  topTraits: string[];
 }
 
 function formatTraitLabel(trait: string) {
   return trait.charAt(0).toUpperCase() + trait.slice(1);
 }
 
-function getSectorFromTrait(trait: string) {
-  const traitToSector: Record<string, string> = {
-    creative: "Creative",
-    analytical: "Tech",
-    execution: "Core",
-    management: "Business",
-  };
-
-  return traitToSector[trait] ?? "Core";
+function getTraitPairKey(topTraits: string[]) {
+  return [...topTraits].sort().join("+");
 }
 
-function getRolesFromTrait(trait: string) {
-  const traitToRoles: Record<string, string[]> = {
-    creative: ["UI/UX Designer", "Content Creator", "Product Designer"],
-    analytical: ["Data Analyst", "Backend Developer", "ML Engineer"],
-    execution: ["Operations Executive", "Field Engineer", "Production Manager"],
-    management: ["Product Manager", "Business Analyst", "Consultant"],
+function formatTraitPair(topTraits: string[]) {
+  return topTraits.map(formatTraitLabel).join(" + ");
+}
+
+function getRoleRecommendation(topTraits: string[]) {
+  const pairRoles: Record<string, { sector: string; roles: string[] }> = {
+    "analytical+structured": {
+      sector: "Backend / Data roles",
+      roles: ["Backend Developer", "Data Analyst", "Business Intelligence Analyst"],
+    },
+    "analytical+creative": {
+      sector: "Frontend / Product roles",
+      roles: ["Frontend Developer", "Product Analyst", "UX Researcher"],
+    },
+    "execution+structured": {
+      sector: "Operations roles",
+      roles: ["Operations Analyst", "Project Coordinator", "Implementation Specialist"],
+    },
+    "creative+structured": {
+      sector: "Product / Design systems roles",
+      roles: ["Product Designer", "Content Strategist", "Design Operations Associate"],
+    },
+    "analytical+execution": {
+      sector: "Engineering / Analytics roles",
+      roles: ["QA Analyst", "Data Engineer", "Technical Support Engineer"],
+    },
+    "creative+execution": {
+      sector: "Growth / Delivery roles",
+      roles: ["Growth Associate", "Marketing Operations Associate", "Product Launch Coordinator"],
+    },
+    "management+structured": {
+      sector: "Business / Program roles",
+      roles: ["Business Analyst", "Program Coordinator", "Associate Product Manager"],
+    },
+    "analytical+management": {
+      sector: "Strategy / Consulting roles",
+      roles: ["Strategy Analyst", "Consultant", "Product Manager"],
+    },
+    "creative+management": {
+      sector: "Brand / Product roles",
+      roles: ["Brand Strategist", "Product Manager", "Community Lead"],
+    },
   };
 
-  return traitToRoles[trait] ?? traitToRoles.execution;
+  const singleTraitRoles: Record<string, { sector: string; roles: string[] }> = {
+    creative: {
+      sector: "Creative roles",
+      roles: ["UI/UX Designer", "Content Creator", "Product Designer"],
+    },
+    analytical: {
+      sector: "Analytical roles",
+      roles: ["Data Analyst", "Backend Developer", "ML Engineer"],
+    },
+    structured: {
+      sector: "Structured roles",
+      roles: ["Business Analyst", "Project Coordinator", "Operations Analyst"],
+    },
+    execution: {
+      sector: "Execution roles",
+      roles: ["Operations Executive", "Field Engineer", "Production Manager"],
+    },
+    management: {
+      sector: "Business roles",
+      roles: ["Product Manager", "Business Analyst", "Consultant"],
+    },
+  };
+
+  return pairRoles[getTraitPairKey(topTraits)] ?? singleTraitRoles[topTraits[0]] ?? singleTraitRoles.execution;
 }
 
 function getResultSummary(
   module: PsychometricModule,
   answers: PsychometricAnswer[],
 ): PsychometricResultSummary {
+  const profile = computePsychometricProfile(answers);
+  const topTraits = profile.topTraits.length ? profile.topTraits : ["execution"];
+  const primaryTrait = profile.alignmentTrait;
+  const confidence = Math.round(profile.confidence);
+  const recommendation = getRoleRecommendation(topTraits);
+  const traitPair = formatTraitPair(topTraits);
+
   if (module === "resume_builder") {
-    const trait = getTopTraitWithFallback(answers);
-    const sector = getSectorFromTrait(trait);
-    const roles = getRolesFromTrait(trait);
     return {
-      headline: `You are best suited for ${sector}`,
-      description: `Based on your ${formatTraitLabel(trait)} thinking, your answers point toward the kind of work, responsibilities, and problem-solving patterns where you are most likely to thrive.`,
-      roles,
+      headline: `You are ${confidence}% aligned with ${formatTraitLabel(primaryTrait)} roles`,
+      description: `Your strongest pattern is ${traitPair}. Your weighted answers point toward ${recommendation.sector}, where your problem-solving style is most likely to feel natural and useful.`,
+      roles: recommendation.roles,
+      confidence,
+      topTraits,
     };
   }
 
-  const trait = getTopTraitWithFallback(answers);
   return {
-    headline: `Your personality type is ${formatTraitLabel(trait)}`,
+    headline: `You are ${confidence}% aligned with ${formatTraitLabel(primaryTrait)} roles`,
     description:
-      `Based on your ${formatTraitLabel(trait)} thinking, your responses reveal the work style you naturally lean toward. We'll use this profile to shape the next job-discovery step around how you think and operate best.`,
+      `Your strongest pattern is ${traitPair}. We'll use this weighted profile to shape job discovery around how you think, organise decisions, and move work forward.`,
+    roles: recommendation.roles,
+    confidence,
+    topTraits,
   };
 }
 
@@ -211,10 +254,13 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
       return;
     }
 
+    const questionId = String(
+      currentQuestion.question_id ?? currentQuestion.id ?? `${module}-${currentIndex}`,
+    );
     const nextAnswer: PsychometricAnswer = {
-      questionId: String(
-        currentQuestion.question_id ?? currentQuestion.id ?? `${module}-${currentIndex}`,
-      ),
+      question_id: questionId,
+      answer: selectedValue,
+      questionId,
       module,
       question: getQuestionText(currentQuestion),
       selectedOption: selectedValue,
@@ -296,6 +342,14 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
               <p className="mt-4 font-['Poppins:Regular',sans-serif] text-neutral-600 leading-7">
                 {resultSummary.description}
               </p>
+              <div className="mt-5 rounded-lg border border-neutral-300 p-4 text-left">
+                <p className="font-['Poppins:Medium',sans-serif] text-neutral-800">
+                  Confidence score: {resultSummary.confidence}%
+                </p>
+                <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
+                  Top traits: {formatTraitPair(resultSummary.topTraits)}
+                </p>
+              </div>
               {resultSummary.roles?.length ? (
                 <div className="mt-6 text-left">
                   <p className="font-['Poppins:Medium',sans-serif] text-neutral-800">
