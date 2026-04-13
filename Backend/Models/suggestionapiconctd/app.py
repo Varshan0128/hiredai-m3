@@ -5,10 +5,12 @@ Resume Grammar Checker API (Debug Version)
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import tempfile
 import os
+import logging
 import uvicorn
 import requests
 import re
@@ -25,6 +27,12 @@ from grammar_checker import (
 )
 
 from file_reader import read_resume_file
+from api.resume_routes import router as resume_router
+from core.settings import settings
+from db.session import init_db
+from services.resume_analysis_service import ResumeAnalysisService
+
+logger = logging.getLogger("resume_runtime")
 
 # Load the workspace-level .env (walk up from this file path).
 for _parent in Path(__file__).resolve().parents:
@@ -116,6 +124,21 @@ ROLE_CATALOG: Dict[str, Dict[str, object]] = {
             {"title": "Design Systems Specialist", "company": "Flipkart", "location": "Bengaluru", "type": "Hybrid", "experience": "Senior", "salary": "$18k-$28k", "aiRisk": 20, "posted": "6 days ago", "requirements": ["Design Systems", "Tokens", "Figma", "Documentation"], "description": "Scale component systems, improve design handoff, and strengthen consistency across multiple products."},
         ],
     },
+    "project": {
+        "query": "Project Coordinator",
+        "keywords": {
+            "project", "project manager", "project management", "project coordinator",
+            "program coordinator", "coordination", "stakeholder", "timeline",
+            "planning", "leadership", "communication", "operations"
+        },
+        "jobs": [
+            {"title": "Project Coordinator", "company": "Infosys BPM", "location": "Pune", "type": "Hybrid", "experience": "Entry Level", "salary": "$7k-$12k", "aiRisk": 25, "posted": "1 day ago", "requirements": ["Project Coordination", "Communication", "Scheduling", "Stakeholder Management"], "description": "Coordinate schedules, track project actions, and keep stakeholders aligned across delivery milestones."},
+            {"title": "Project Management Trainee", "company": "Cognizant", "location": "Chennai", "type": "On-site", "experience": "Entry Level", "salary": "$8k-$14k", "aiRisk": 29, "posted": "2 days ago", "requirements": ["Project Management", "Leadership", "Documentation", "Presentation"], "description": "Support project planning, document follow-ups, and drive meeting readiness for delivery teams."},
+            {"title": "Program Coordinator", "company": "Accenture", "location": "Bengaluru", "type": "Hybrid", "experience": "Entry Level", "salary": "$9k-$15k", "aiRisk": 27, "posted": "3 days ago", "requirements": ["Coordination", "Communication", "Reporting", "Team Collaboration"], "description": "Help manage program cadences, reporting, and team coordination across multiple workstreams."},
+            {"title": "PMO Analyst", "company": "Capgemini", "location": "Hyderabad", "type": "Hybrid", "experience": "Entry Level", "salary": "$10k-$16k", "aiRisk": 31, "posted": "4 days ago", "requirements": ["Documentation", "Reporting", "Stakeholder Coordination", "Excel"], "description": "Maintain project reporting, track progress, and support PMO governance processes."},
+            {"title": "Operations Coordinator", "company": "HCLTech", "location": "Noida", "type": "On-site", "experience": "Entry Level", "salary": "$8k-$13k", "aiRisk": 30, "posted": "5 days ago", "requirements": ["Operations", "Coordination", "Communication", "Problem Solving"], "description": "Coordinate day-to-day operations, handle stakeholder communication, and support structured follow-through."},
+        ],
+    },
     "marketing": {
         "query": "Digital Marketing Specialist",
         "keywords": {
@@ -153,26 +176,26 @@ COMMON_TECH_SKILLS = {
     "power bi", "tableau", "excel", "figma", "seo", "analytics", "fastapi"
 }
 
+resume_analysis_service = ResumeAnalysisService()
+
 
 def _normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
 
 
 def _extract_resume_skills(text: str, limit: int = 8) -> List[str]:
-    haystack = f" {_normalize_text(text).lower()} "
-    found: List[str] = []
-    for skill in sorted(COMMON_TECH_SKILLS, key=len, reverse=True):
-        skill_pattern = f" {skill.lower()} "
-        if skill_pattern in haystack:
-            found.append(skill.title())
-        elif re.search(rf"\b{re.escape(skill.lower())}\b", haystack):
-            found.append(skill.title())
-        if len(found) >= limit:
-            break
-    return found
+    analysis = resume_analysis_service.analyze(text)
+    return [skill["name"] for skill in analysis.get("explicit_skills", [])[:limit]]
 
 
 def _infer_job_family(skills: List[str], text: str, filename: str = "") -> str:
+    analysis = resume_analysis_service.analyze(" ".join(part for part in [text, filename] if part))
+    top_role = next(iter(analysis.get("recommended_roles", [])), {}).get("title", "").lower()
+    if any(term in top_role for term in ("project", "program", "pmo")):
+        return "project"
+    if any(term in top_role for term in ("operations", "business operations")):
+        return "business"
+
     evidence = " ".join([filename, text, " ".join(skills)]).lower()
     best_family = "backend"
     best_score = 0
@@ -190,6 +213,13 @@ def _infer_job_family(skills: List[str], text: str, filename: str = "") -> str:
 
 
 def _keywords_from_signal(skills: List[str], text: str, filename: str = "") -> str:
+    analysis = resume_analysis_service.analyze(" ".join(part for part in [text, filename] if part))
+    top_role = next(iter(analysis.get("recommended_roles", [])), {}).get("title")
+    explicit_skills = [skill["name"] for skill in analysis.get("explicit_skills", [])]
+    if top_role:
+        if explicit_skills:
+            return f"{top_role} {' '.join(explicit_skills[:3])}".strip()
+        return top_role
     family = _infer_job_family(skills, text, filename)
     role_query = str(ROLE_CATALOG[family]["query"])
     if skills:
@@ -398,6 +428,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 app.add_middleware(
     CORSMiddleware,
@@ -406,6 +437,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+settings.resume_upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.resume_upload_dir.parent), name="uploads")
+app.include_router(resume_router)
 
 
 # =============================================================================
@@ -484,16 +519,31 @@ async def get_jobs_from_resume(file: UploadFile = File(...)):
             temp_file = temp.name
 
         resume_text = read_resume_file(temp_file)
-        skills = _extract_resume_skills(resume_text)
+        analysis = resume_analysis_service.analyze(resume_text)
+        skills = [skill["name"] for skill in analysis.get("explicit_skills", [])]
         keywords = _keywords_from_signal(skills, resume_text, file.filename or "")
         family = _infer_job_family(skills, resume_text, file.filename or "")
 
         jobs = _get_jobs_with_fallback(keywords, "India", skills, file.filename or "")
+        logger.info(
+            "jobs_from_resume filename=%s family=%s explicit=%s inferred=%s roles=%s jobs=%s",
+            file.filename,
+            family,
+            [item["name"] for item in analysis.get("explicit_skills", [])],
+            [item["name"] for item in analysis.get("inferred_skills", [])],
+            [item["title"] for item in analysis.get("recommended_roles", [])],
+            [job.get("title") for job in jobs[:5]],
+        )
 
         return {
             "jobs": jobs,
             "selectedDomain": family,
             "skills": skills,
+            "explicit_skills": analysis.get("explicit_skills", []),
+            "inferred_skills": analysis.get("inferred_skills", []),
+            "recommended_roles": analysis.get("recommended_roles", []),
+            "similar_job_matches": analysis.get("similar_job_matches", []),
+            "analyzer_version": analysis.get("analyzer_version", "live-pipeline-v2"),
             "query": keywords,
         }
     except HTTPException:
@@ -640,6 +690,7 @@ async def analyze_file(file: UploadFile = File(...)):
 
 @app.on_event("startup")
 async def startup_event():
+    init_db()
     print("\n======================================")
     print("Grammar Checker API Starting")
     print(f"URL: {PYTHON_PUBLIC_URL}")

@@ -121,6 +121,44 @@ type AnalysisResult = {
   recruiterView: RecruiterView;
   learningPath: string[];
   timeToHire: string;
+  integrationFlag?: string;
+};
+
+type BackendSkillEvidence = {
+  name: string;
+  confidence: number;
+  source?: string;
+  section?: string;
+};
+
+type BackendRoleRecommendation = {
+  title: string;
+  score: number;
+  reason: string;
+};
+
+type BackendJobMatch = {
+  role: string;
+  company: string;
+  match_score: number;
+  matching_explicit_skills: string[];
+  matching_inferred_skills: string[];
+  reason: string;
+};
+
+type BackendResumeAnalysis = {
+  raw_text?: string;
+  selectedDomain?: string;
+  explicit_skills?: BackendSkillEvidence[];
+  inferred_skills?: BackendSkillEvidence[];
+  recommended_roles?: BackendRoleRecommendation[];
+  similar_job_matches?: BackendJobMatch[];
+  career_score?: number;
+  ai_risk?: number;
+  market_demand?: number;
+  time_to_hire_weeks?: number[];
+  jobs?: StoredJobRecord[];
+  test_flag?: string;
 };
 
 function readJsonFromStorage<T>(key: string): T | null {
@@ -164,6 +202,10 @@ function readStoredJobs(): StoredJobRecord[] {
   if (Array.isArray(value)) return value;
   if (Array.isArray(value?.jobs)) return value.jobs;
   return [];
+}
+
+function readStoredResumeAnalysis(): BackendResumeAnalysis | null {
+  return readJsonFromStorage<BackendResumeAnalysis>("resumeAnalysis");
 }
 
 function detectDomain(resumeText: string, storedDomain?: string | null) {
@@ -450,8 +492,160 @@ function estimateTimeToHire(score: number, demandScore: number) {
   return fastTrack ? "4-10 weeks" : score >= 68 ? "8-18 weeks" : "12-24 weeks";
 }
 
+function inferDomainFromRoles(roles: BackendRoleRecommendation[] = []) {
+  const topRole = roles[0]?.title?.toLowerCase() ?? "";
+  if (/(project|program|pmo)/.test(topRole)) return "business";
+  if (/operations/.test(topRole)) return "business";
+  if (/(designer|ux|ui)/.test(topRole)) return "design";
+  if (/(data|analyst)/.test(topRole)) return "data";
+  if (/(developer|engineer)/.test(topRole)) return "software";
+  return "business";
+}
+
+function buildTimelineFromRisk(riskPct: number): FuturePoint[] {
+  return [2026, 2027, 2028, 2029, 2030].map((year, index) => {
+    const projected = clamp(riskPct + index * 4 - 3, 15, 85);
+    return {
+      year,
+      riskPct: projected,
+      label: projected <= 30 ? "Low" : projected <= 50 ? "Medium" : "High",
+    };
+  });
+}
+
+function mapStoredJobByTitle(storedJobs: StoredJobRecord[]) {
+  const mapping = new Map<string, StoredJobRecord>();
+  storedJobs.forEach((job) => {
+    if (job.title) {
+      mapping.set(job.title.trim().toLowerCase(), job);
+    }
+  });
+  return mapping;
+}
+
+function buildAnalysisFromBackend(backend: BackendResumeAnalysis, storedJobs: StoredJobRecord[]): AnalysisResult {
+  const explicitSkills = backend.explicit_skills ?? [];
+  const inferredSkills = backend.inferred_skills ?? [];
+  const recommendedRoles = backend.recommended_roles ?? [];
+  const domain = inferDomainFromRoles(recommendedRoles);
+  const parsed = parseResume(backend.raw_text ?? "", backend.selectedDomain ?? domain);
+  parsed.domain = domain;
+  parsed.topSkills = explicitSkills.map((item) => item.name);
+  parsed.gapAreas = inferredSkills.map((item) => item.name);
+  parsed.resumeText = backend.raw_text ?? parsed.resumeText;
+
+  const jobLookup = mapStoredJobByTitle(storedJobs);
+  const jobs: MatchedJob[] = (backend.similar_job_matches ?? []).map((jobMatch) => {
+    const linkedJob = jobLookup.get(jobMatch.role.trim().toLowerCase());
+    const matchingCoreSkills = jobMatch.matching_explicit_skills.length
+      ? `${jobMatch.matching_explicit_skills.length} matching explicit skills: ${jobMatch.matching_explicit_skills.join(", ")}.`
+      : "";
+
+    return {
+      title: jobMatch.role,
+      matchPct: Math.round(jobMatch.match_score * 100),
+      reason: [jobMatch.reason, matchingCoreSkills].filter(Boolean).join(" "),
+      type: (linkedJob?.type as MatchedJob["type"]) ?? "Remote",
+      location: linkedJob?.location ?? "India",
+      aiRisk: linkedJob?.aiRisk ?? Math.max((backend.ai_risk ?? 42) - 5, 18),
+      company: jobMatch.company || linkedJob?.company,
+      salary: linkedJob?.salary ?? "Not specified",
+      posted: linkedJob?.posted ?? "Recently",
+    };
+  });
+
+  const demandScore = backend.market_demand ?? 60;
+  const riskPct = backend.ai_risk ?? 42;
+  const timeline = buildTimelineFromRisk(riskPct);
+  const timeToHireWeeks = backend.time_to_hire_weeks ?? [12, 24];
+  const demand: DemandResult = {
+    demandScore,
+    demandLabel: demandScore >= 80 ? "High" : demandScore >= 65 ? "Stable" : "Growing",
+    hotSkills: explicitSkills.map((item) => item.name).slice(0, 5),
+    marketInsight: recommendedRoles[0]?.reason ?? "Demand is based on your strongest aligned roles and explicit skills.",
+  };
+  const risk: RiskResult = {
+    riskPct,
+    riskLabel: riskPct <= 30 ? "Low" : riskPct <= 50 ? "Medium" : "High",
+    verdict:
+      riskPct <= 30
+        ? "Your profile leans toward collaborative and judgment-heavy work."
+        : riskPct <= 50
+          ? "Your profile is resilient, but adding differentiated skills will strengthen it."
+          : "Your path can improve by shifting toward higher-creativity and strategic work.",
+  };
+  const careerScoreValue = backend.career_score ?? 60;
+  const careerScore: CareerScoreResult = {
+    score: careerScoreValue,
+    verdict:
+      careerScoreValue >= 80
+        ? "Strong short-term hiring position."
+        : careerScoreValue >= 65
+          ? "Promising with a few focused improvements."
+          : "Build depth in the highlighted areas to lift your outcomes.",
+    skillMatch: jobs.length ? Math.round(jobs.reduce((sum, job) => sum + job.matchPct, 0) / jobs.length) : careerScoreValue,
+  };
+
+  console.info("resume-processing using backend analysis", {
+    explicitSkills: explicitSkills.map((item) => item.name),
+    inferredSkills: inferredSkills.map((item) => item.name),
+    recommendedRoles: recommendedRoles.map((item) => item.title),
+    similarJobMatches: jobs.map((job) => job.title),
+  });
+
+  return {
+    parsed,
+    jobs,
+    demand,
+    risk,
+    timeline,
+    futureSummary: `Projected automation exposure stays ${timeline[0].label.toLowerCase()} to ${timeline[timeline.length - 1].label.toLowerCase()} if your skills remain unchanged.`,
+    careerScore,
+    simulations: inferredSkills.slice(0, 3).map((skill, index) => ({
+      skill: skill.name,
+      scoreGain: 3 + index * 2,
+      impact: `If you strengthen ${skill.name}, score may improve by ${3 + index * 2} points with stronger role evidence.`,
+    })),
+    safeJobs: recommendedRoles.slice(0, 3).map((role) => ({
+      title: role.title,
+      fit: role.reason,
+      risk: risk.riskLabel === "Low" ? "Low risk" : "Moderate risk",
+    })),
+    hiddenOpportunities: recommendedRoles.slice(1, 4).map((role) => role.title),
+    recruiterView: {
+      strengths: [
+        ...explicitSkills.slice(0, 3).map((item) => `Explicit evidence for ${item.name}`),
+        recommendedRoles[0]?.reason ?? "Strong role alignment in the resume objective.",
+      ],
+      weaknesses: [
+        inferredSkills[0] ? `Some signals are inferred rather than explicit, such as ${inferredSkills[0].name}.` : "Needs more measurable proof-of-work outcomes.",
+        "Resume could show more quantified impact.",
+        "Formal experience is still early-stage for target roles.",
+      ],
+      risks: [
+        "Overstating loosely inferred skills can reduce recruiter confidence.",
+        "PM roles will still expect stronger proof of execution over time.",
+        "Interview readiness will matter for top-match roles.",
+      ],
+    },
+    learningPath: [
+      "Strengthen project coordination proof points with measurable outcomes.",
+      "Keep building PM-oriented no-code / AI prototypes with clear delivery ownership.",
+      "Add quantifiable leadership and event-coordination impact to the resume.",
+      "Apply first to coordinator, PM trainee, and business-operations entry roles.",
+      "Use certification-backed terms only where you can show practical evidence.",
+    ],
+    timeToHire: `${timeToHireWeeks[0]}-${timeToHireWeeks[1]} weeks`,
+    integrationFlag: backend.test_flag,
+  };
+}
+
 function runRoleRadarAnalysis(): AnalysisResult {
   const { resumeText, selectedDomain, storedJobs } = extractResumeSource();
+  const backendAnalysis = readStoredResumeAnalysis();
+  if (backendAnalysis?.recommended_roles?.length || backendAnalysis?.similar_job_matches?.length) {
+    return buildAnalysisFromBackend(backendAnalysis, storedJobs);
+  }
   const parsed = parseResume(resumeText, selectedDomain);
   const jobs = matchJobs(parsed, storedJobs);
   const demand = analyzeDemand(parsed);
@@ -543,6 +737,11 @@ export default function ResumeProcessing() {
             <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
               Our AI is preparing your insights
             </p>
+            {analysis?.integrationFlag ? (
+              <p className="mt-2 font-['Poppins:Medium',sans-serif] text-sm text-emerald-600">
+                {analysis.integrationFlag}
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-10 flex justify-center">
