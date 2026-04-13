@@ -12,7 +12,6 @@ import tempfile
 import os
 import logging
 import uvicorn
-import requests
 import re
 from pathlib import Path
 from dotenv import load_dotenv
@@ -27,10 +26,22 @@ from grammar_checker import (
 )
 
 from file_reader import read_resume_file
+
 from api.resume_routes import router as resume_router
 from core.settings import settings
 from db.session import init_db
 from services.resume_analysis_service import ResumeAnalysisService
+
+from job_services import (
+    dedupe_jobs,
+    enrich_jobs_with_details,
+    fetch_job_details,
+    fetch_scrapingdog_jobs,
+    fetch_serpapi_jobs,
+    fetch_serper_jobs,
+    make_job_id,
+    normalize_text,
+)
 
 logger = logging.getLogger("resume_runtime")
 
@@ -179,10 +190,6 @@ COMMON_TECH_SKILLS = {
 resume_analysis_service = ResumeAnalysisService()
 
 
-def _normalize_text(value: str) -> str:
-    return re.sub(r"\s+", " ", (value or "").strip())
-
-
 def _extract_resume_skills(text: str, limit: int = 8) -> List[str]:
     analysis = resume_analysis_service.analyze(text)
     return [skill["name"] for skill in analysis.get("explicit_skills", [])[:limit]]
@@ -227,11 +234,6 @@ def _keywords_from_signal(skills: List[str], text: str, filename: str = "") -> s
     return role_query
 
 
-def _make_job_id(title: str, company: str, location: str) -> str:
-    seed = f"{title}-{company}-{location}".lower()
-    return re.sub(r"[^a-z0-9]+", "-", seed).strip("-")
-
-
 def _extract_apply_link(job: Dict[str, object]) -> str:
     link = None
 
@@ -263,11 +265,11 @@ def _normalize_external_jobs(
 
     for index, job in enumerate(jobs[:limit]):
         template = templates[index % len(templates)]
-        title = _normalize_text(str(job.get("title") or "Untitled role"))
-        company = _normalize_text(str(job.get("company") or "Unknown company"))
-        job_location = _normalize_text(str(job.get("location") or location or "Location not specified"))
-        description = _normalize_text(str(job.get("description") or "No description available."))
-        job_id = _make_job_id(title, company, job_location)
+        title = normalize_text(job.get("title") or "Untitled role")
+        company = normalize_text(job.get("company") or "Unknown company")
+        job_location = normalize_text(job.get("location") or location or "Location not specified")
+        description = normalize_text(job.get("description") or "No description available.")
+        job_id = make_job_id(title, company, job_location)
         if job_id in seen_ids:
             job_id = f"{job_id}-{index + 1}"
         seen_ids.add(job_id)
@@ -281,7 +283,8 @@ def _normalize_external_jobs(
             "title": title,
             "company": company,
             "location": job_location,
-            "link": _extract_apply_link(job),
+            "link": normalize_text(job.get("apply_link") or _extract_apply_link(job)),
+            "apply_link": normalize_text(job.get("apply_link") or _extract_apply_link(job)),
             "source": job.get("source") or "unknown",
             "type": job.get("type") or "Remote",
             "salary": job.get("salary") or "Not specified",
@@ -295,127 +298,38 @@ def _normalize_external_jobs(
     return normalized
 
 
-def _fetch_serpapi_jobs(role: str, location: str, limit: int = 10) -> List[Dict[str, object]]:
-    if not SERPAPI_KEY:
-        print("SerpAPI key missing")
-        return []
-
-    try:
-        response = requests.get(
-            "https://serpapi.com/search.json",
-            params={
-                "engine": "google_jobs",
-                "q": f"{role} jobs",
-                "location": location,
-                "api_key": SERPAPI_KEY,
-            },
-            timeout=20,
-        )
-        response.raise_for_status()
-        data = response.json()
-        jobs: List[Dict[str, object]] = []
-        for job in data.get("jobs_results", [])[:limit]:
-            jobs.append({
-                "title": job.get("title"),
-                "company": job.get("company_name"),
-                "location": job.get("location") or location,
-                "description": job.get("description"),
-                "link": _extract_apply_link(job),
-                "source": "serpapi",
-            })
-        return jobs
-    except (requests.RequestException, ValueError) as exc:
-        print(f"SerpAPI failed: {exc}")
-        return []
-
-
-def _fetch_serper_jobs(role: str, location: str, limit: int = 10) -> List[Dict[str, object]]:
-    if not SERPER_API_KEY:
-        print("Serper key missing")
-        return []
-
-    try:
-        response = requests.post(
-            "https://google.serper.dev/search",
-            headers={
-                "X-API-KEY": SERPER_API_KEY,
-                "Content-Type": "application/json",
-            },
-            json={"q": f"{role} jobs in {location}"},
-            timeout=20,
-        )
-        response.raise_for_status()
-        data = response.json()
-        jobs: List[Dict[str, object]] = []
-        for item in data.get("organic", [])[:limit]:
-            jobs.append({
-                "title": item.get("title"),
-                "company": item.get("source"),
-                "location": location,
-                "description": item.get("snippet"),
-                "link": item.get("link"),
-                "source": "serper",
-            })
-        return jobs
-    except (requests.RequestException, ValueError) as exc:
-        print(f"Serper failed: {exc}")
-        return []
-
-
-def _fetch_scrapingdog_jobs(role: str, location: str, limit: int = 10) -> List[Dict[str, object]]:
-    if not SCRAPINGDOG_API_KEY:
-        print("ScrapingDog key missing")
-        return []
-
-    try:
-        response = requests.get(
-            "https://api.scrapingdog.com/google",
-            params={
-                "api_key": SCRAPINGDOG_API_KEY,
-                "query": f"{role} jobs in {location}",
-            },
-            timeout=20,
-        )
-        response.raise_for_status()
-        data = response.json()
-        results = data.get("results") or data.get("organic_results") or []
-        jobs: List[Dict[str, object]] = []
-        for item in results[:limit]:
-            jobs.append({
-                "title": item.get("title"),
-                "company": item.get("domain"),
-                "location": location,
-                "description": item.get("snippet"),
-                "link": item.get("link"),
-                "source": "scrapingdog",
-            })
-        return jobs
-    except (requests.RequestException, ValueError) as exc:
-        print(f"ScrapingDog failed: {exc}")
-        return []
-
-
 def _get_jobs_with_fallback(role: str, location: str, skills: List[str], filename: str = "") -> List[Dict[str, object]]:
     family = _infer_job_family(skills, role, filename)
+    provider_jobs: List[Dict[str, object]] = []
 
-    jobs = _fetch_serpapi_jobs(role, location)
-    if jobs:
-        print("Using SerpAPI")
-        return _normalize_external_jobs(jobs, family, skills, location)
+    try:
+        provider_jobs.extend(fetch_serpapi_jobs(SERPAPI_KEY, role, location, limit=8))
+    except Exception as exc:
+        print(f"SerpAPI failed: {exc}")
 
-    print("Primary failed -> switching to secondary")
-    jobs = _fetch_serper_jobs(role, location)
-    if jobs:
-        print("Using Serper")
-        return _normalize_external_jobs(jobs, family, skills, location)
+    try:
+        provider_jobs.extend(fetch_serper_jobs(SERPER_API_KEY, role, location, limit=8))
+    except Exception as exc:
+        print(f"Serper failed: {exc}")
 
-    print("Secondary failed -> switching to backup")
-    jobs = _fetch_scrapingdog_jobs(role, location)
-    if jobs:
-        print("Using ScrapingDog")
-        return _normalize_external_jobs(jobs, family, skills, location)
+    if not provider_jobs:
+        try:
+            provider_jobs.extend(fetch_scrapingdog_jobs(SCRAPINGDOG_API_KEY, role, location, limit=10))
+        except Exception as exc:
+            print(f"ScrapingDog search failed: {exc}")
 
-    return []
+    provider_jobs = dedupe_jobs(provider_jobs, limit=10)
+
+    try:
+        provider_jobs = enrich_jobs_with_details(
+            provider_jobs,
+            fetch_job_details,
+            SCRAPINGDOG_API_KEY,
+        )
+    except Exception as exc:
+        print(f"ScrapingDog detail enrichment failed: {exc}")
+
+    return _normalize_external_jobs(provider_jobs, family, skills, location)
 
 
 # =============================================================================

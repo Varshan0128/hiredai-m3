@@ -3,199 +3,208 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageBackButton from "./PageBackButton";
 import {
-  type PsychometricAnswer,
-  type PsychometricModule,
-  type PsychometricOption,
-  computePsychometricProfile,
+  getAnswersKey,
+  getCompletionKey,
   getFeatureRoute,
-  getOptionImpact,
-  getOptionLabel,
-  getOptionTrait,
-  getOptionValue,
-  getQuestionOptions,
-  getQuestionText,
-  getQuestionsByModule,
-  loadPsychometricQuestions,
-  normalizeTraitName,
-  persistPsychometricCompletion,
-  shuffleArray,
+  PSYCHOMETRIC_STORAGE_KEYS,
+  type PsychometricModule,
 } from "../utils/psychometric";
+import * as engine from "../utils/psychometricEngine";
+import type {
+  EngineQuestion,
+  PsychometricEngineResult,
+} from "../utils/psychometricEngine";
 
 interface PsychometricFlowProps {
   module: PsychometricModule;
 }
 
-interface PsychometricResultSummary {
+interface ResultSummary {
   headline: string;
   description: string;
-  roles?: string[];
+  roles: string[];
+  confidence: number;
+  topTraits: string[];
 }
 
-function getTopTraitWithFallback(answers: PsychometricAnswer[]) {
-  const scores = answers.reduce<Record<string, number>>((acc, answer) => {
-    const trait = normalizeTraitName(answer.trait || "execution");
-    acc[trait] = (acc[trait] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  console.log("Trait Scores:", scores);
-
-  const topTrait = Object.keys(scores).reduce(
-    (best, current) =>
-      (scores[current] ?? 0) > (scores[best] ?? 0) ? current : best,
-    Object.keys(scores)[0] ?? "execution",
-  );
-
-  return topTrait || "execution";
+interface AnswerHistoryItem {
+  question: EngineQuestion;
+  optionIndex: number;
+  optionValue: string;
 }
 
 function formatTraitLabel(trait: string) {
-  return trait.charAt(0).toUpperCase() + trait.slice(1);
+  return trait
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
-function getSectorFromTrait(trait: string) {
-  const traitToSector: Record<string, string> = {
-    creative: "Creative",
-    analytical: "Tech",
-    execution: "Core",
-    management: "Business",
-  };
-
-  return traitToSector[trait] ?? "Core";
+function formatTraitPair(topTraits: string[]) {
+  return topTraits.map(formatTraitLabel).join(" + ");
 }
 
-function getRolesFromTrait(trait: string) {
-  const traitToRoles: Record<string, string[]> = {
-    creative: ["UI/UX Designer", "Content Creator", "Product Designer"],
-    analytical: ["Data Analyst", "Backend Developer", "ML Engineer"],
-    execution: ["Operations Executive", "Field Engineer", "Production Manager"],
-    management: ["Product Manager", "Business Analyst", "Consultant"],
-  };
-
-  return traitToRoles[trait] ?? traitToRoles.execution;
+function isResumeBuilderBest(
+  best: PsychometricEngineResult["best"],
+): best is Extract<NonNullable<PsychometricEngineResult["best"]>, { industry: string }> {
+  return Boolean(best && "industry" in best && "role" in best && "alt" in best);
 }
 
-function getResultSummary(
+function isJobDiscoveryBest(
+  best: PsychometricEngineResult["best"],
+): best is Extract<NonNullable<PsychometricEngineResult["best"]>, { type: string; sub: string; jobs: string[] }> {
+  return Boolean(best && "type" in best && "sub" in best && "jobs" in best);
+}
+
+function buildResultSummary(
   module: PsychometricModule,
-  answers: PsychometricAnswer[],
-): PsychometricResultSummary {
-  if (module === "resume_builder") {
-    const trait = getTopTraitWithFallback(answers);
-    const sector = getSectorFromTrait(trait);
-    const roles = getRolesFromTrait(trait);
+  result: PsychometricEngineResult,
+): ResultSummary {
+  const topTraits = result.topTraits.length ? result.topTraits : ["adaptability"];
+  const traitPair = formatTraitPair(topTraits);
+  const best = result.best;
+  const explanation = result.explanation ? ` ${result.explanation}` : "";
+  const hybridNote =
+    result.contradictionScore >= 2
+      ? " Your answers show a hybrid pattern, so this result balances more than one strong work style."
+      : "";
+
+  if (module === "resume_builder" && isResumeBuilderBest(best)) {
     return {
-      headline: `You are best suited for ${sector}`,
-      description: `Based on your ${formatTraitLabel(trait)} thinking, your answers point toward the kind of work, responsibilities, and problem-solving patterns where you are most likely to thrive.`,
-      roles,
+      headline: best.industry,
+      description: `Primary role: ${best.role}. Alternative path: ${best.alt}. Your strongest patterns point toward ${traitPair}.${hybridNote}${explanation}`,
+      roles: [best.role, best.alt],
+      confidence: result.confidence,
+      topTraits,
     };
   }
 
-  const trait = getTopTraitWithFallback(answers);
+  if (module === "job_discovery" && isJobDiscoveryBest(best)) {
+    return {
+      headline: best.type,
+      description: `${best.sub}. Your strongest patterns point toward ${traitPair}.${hybridNote}${explanation}`,
+      roles: best.jobs.slice(0, 3),
+      confidence: result.confidence,
+      topTraits,
+    };
+  }
+
   return {
-    headline: `Your personality type is ${formatTraitLabel(trait)}`,
-    description:
-      `Based on your ${formatTraitLabel(trait)} thinking, your responses reveal the work style you naturally lean toward. We'll use this profile to shape the next job-discovery step around how you think and operate best.`,
+    headline: "Psychometric Result",
+    description: `Your strongest patterns point toward ${traitPair}.${hybridNote}${explanation}`,
+    roles: [],
+    confidence: result.confidence,
+    topTraits,
   };
+}
+
+function readStoredProfile() {
+  try {
+    const raw = localStorage.getItem(PSYCHOMETRIC_STORAGE_KEYS.profile);
+    if (!raw) {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function persistEngineState(
+  module: PsychometricModule,
+  result: PsychometricEngineResult,
+  history: AnswerHistoryItem[],
+) {
+  localStorage.setItem(getCompletionKey(module), "true");
+  localStorage.setItem(
+    getAnswersKey(module),
+    JSON.stringify(
+      history.map((entry) => ({
+        questionId: entry.question.id,
+        answerIndex: entry.optionIndex,
+        answer: entry.optionValue,
+      })),
+    ),
+  );
+
+  const currentProfile = readStoredProfile() as Record<string, unknown>;
+  const mergedProfile = {
+    ...currentProfile,
+    module,
+    topTraits: result.topTraits,
+    confidence: result.confidence,
+    best: result.best,
+    second: result.second,
+    traitScores: result.traitScores,
+    [module]: result,
+  };
+
+  localStorage.setItem("psychometric_profile", JSON.stringify(mergedProfile));
 }
 
 export default function PsychometricFlow({ module }: PsychometricFlowProps) {
   const navigate = useNavigate();
   const featureRoute = getFeatureRoute(module);
-  const forceShow = import.meta.env.DEV; // DEV ONLY
-  const [questions, setQuestions] = useState(
-    () => [] as Awaited<ReturnType<typeof loadPsychometricQuestions>>,
-  );
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<PsychometricAnswer[]>([]);
+  const forceShow = import.meta.env.DEV;
+  const [isReady, setIsReady] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState<EngineQuestion | null>(null);
+  const [answerHistory, setAnswerHistory] = useState<AnswerHistoryItem[]>([]);
   const [selectedValue, setSelectedValue] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [resultSummary, setResultSummary] = useState<PsychometricResultSummary | null>(null);
-  const filteredQuestions = useMemo(
-    () => shuffleArray(getQuestionsByModule(questions, module)).slice(0, 15),
-    [module, questions],
-  );
+  const [resultSummary, setResultSummary] = useState<ResultSummary | null>(null);
 
   useEffect(() => {
-    let isActive = true;
-
-    void (async () => {
-      const allQuestions = await loadPsychometricQuestions();
-      if (!isActive) {
-        return;
-      }
-
-      setQuestions(allQuestions);
-      setIsLoading(false);
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log("Module:", module);
-    console.log("All Questions:", questions);
-    console.log("Filtered Questions:", filteredQuestions);
-
-    if (isLoading || filteredQuestions.length === 0 || resultSummary) {
+    const completed = localStorage.getItem(getCompletionKey(module));
+    if (completed && !forceShow) {
+      navigate(featureRoute, { replace: true });
       return;
     }
 
-    const completed =
-      module === "resume_builder"
-        ? localStorage.getItem("psychometric_resume_completed")
-        : localStorage.getItem("psychometric_job_completed");
+    engine.init(module);
+    setAnswerHistory([]);
+    setResultSummary(null);
+    setSelectedValue("");
+    setCurrentQuestion(engine.nextQuestion());
+    setIsReady(true);
+  }, [featureRoute, forceShow, module, navigate]);
 
-    if (completed && !forceShow && filteredQuestions.length > 0) {
-      console.log("Already completed -> redirecting");
-      navigate(featureRoute, { replace: true });
+  const totalQuestions = useMemo(() => 15, []);
+
+  const optionEntries = useMemo(() => {
+    if (!currentQuestion) {
+      return [] as Array<{ key: string; label: string; index: number }>;
     }
-  }, [
-    featureRoute,
-    filteredQuestions,
-    forceShow,
-    isLoading,
-    module,
-    navigate,
-    questions,
-    resultSummary,
-  ]);
 
-  useEffect(() => {
-    const currentAnswer = answers[currentIndex];
-    setSelectedValue(currentAnswer?.selectedOption ?? "");
-  }, [answers, currentIndex]);
-
-  const currentQuestion = filteredQuestions?.[currentIndex];
-  const options = useMemo(
-    () => (currentQuestion ? getQuestionOptions(currentQuestion).slice(0, 4) : []),
-    [currentQuestion],
-  );
-  const totalQuestions = filteredQuestions.length;
-  const isLastQuestion = currentIndex === totalQuestions - 1;
-
-  if (!questions || !Array.isArray(questions)) {
-    console.error("Questions data invalid");
-    return null;
-  }
-
-  if (!filteredQuestions.length) {
-    return null;
-  }
-
-  console.log("Current Index:", currentIndex);
-  console.log("Current Question:", currentQuestion);
+    return currentQuestion.opts.slice(0, 4).map((option, index) => ({
+      key: String.fromCharCode(65 + index),
+      label: option.t,
+      index,
+    }));
+  }, [currentQuestion]);
 
   const handleResultContinue = () => {
-    console.log("Navigating to:", featureRoute);
     navigate(featureRoute, { replace: true });
   };
 
   const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (answerHistory.length === 0) {
+      return;
     }
+
+    const trimmedHistory = answerHistory.slice(0, -1);
+    const previous = answerHistory[answerHistory.length - 1];
+
+    engine.init(module);
+    trimmedHistory.forEach((entry) => {
+      engine.recordAnswer(entry.question, entry.optionIndex);
+    });
+
+    setAnswerHistory(trimmedHistory);
+    setCurrentQuestion(previous.question);
+    setSelectedValue(previous.optionValue);
+    setResultSummary(null);
   };
 
   const saveAnswer = () => {
@@ -203,40 +212,40 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
       return;
     }
 
-    const selectedOption = options.find(
-      (option, index) => getOptionValue(option, index) === selectedValue,
-    );
-
-    if (!selectedOption) {
+    const selectedIndex = optionEntries.find((entry) => entry.key === selectedValue)?.index;
+    if (selectedIndex === undefined) {
       return;
     }
 
-    const nextAnswer: PsychometricAnswer = {
-      questionId: String(
-        currentQuestion.question_id ?? currentQuestion.id ?? `${module}-${currentIndex}`,
-      ),
-      module,
-      question: getQuestionText(currentQuestion),
-      selectedOption: selectedValue,
-      optionLabel: getOptionLabel(selectedOption, options.indexOf(selectedOption)),
-      trait: getOptionTrait(selectedOption),
-      impact: getOptionImpact(selectedOption),
-    };
+    const nextHistory = [
+      ...answerHistory,
+      {
+        question: currentQuestion,
+        optionIndex: selectedIndex,
+        optionValue: selectedValue,
+      },
+    ];
 
-    const nextAnswers = [...answers];
-    nextAnswers[currentIndex] = nextAnswer;
-    setAnswers(nextAnswers);
+    const record = engine.recordAnswer(currentQuestion, selectedIndex);
+    setAnswerHistory(nextHistory);
 
-    if (isLastQuestion) {
-      persistPsychometricCompletion(module, nextAnswers);
-      setResultSummary(getResultSummary(module, nextAnswers));
+    if (record.stop || nextHistory.length >= totalQuestions) {
+      const result = engine.getResult();
+      if (!result) {
+        return;
+      }
+
+      persistEngineState(module, result, nextHistory);
+      setResultSummary(buildResultSummary(module, result));
+      setCurrentQuestion(null);
       return;
     }
 
-    setCurrentIndex((index) => index + 1);
+    setCurrentQuestion(engine.nextQuestion());
+    setSelectedValue("");
   };
 
-  if (isLoading) {
+  if (!isReady) {
     return (
       <div className="min-h-screen bg-white">
         <div className="fixed left-4 top-4 z-50">
@@ -245,28 +254,7 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
         <div className="min-h-screen flex items-center justify-center px-4 py-12">
           <div className="w-full max-w-2xl rounded-[24px] border-2 border-neutral-800 bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] text-center">
             <p className="font-['Poppins:Medium',sans-serif] text-neutral-700">
-              Loading questions...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (totalQuestions === 0) {
-    console.error("No questions available");
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="fixed left-4 top-4 z-50">
-          <PageBackButton fallbackTo="/dashboard" label="Dashboard" variant="floating" />
-        </div>
-        <div className="min-h-screen flex items-center justify-center px-4 py-12">
-          <div className="w-full max-w-2xl rounded-[24px] border-2 border-neutral-800 bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] text-center">
-            <h1 className="font-['Poppins:Bold',sans-serif] text-3xl text-neutral-800">
-              Psychometric Questions
-            </h1>
-            <p className="mt-3 font-['Poppins:Regular',sans-serif] text-neutral-600">
-              Questions not loaded
+              Preparing assessment...
             </p>
           </div>
         </div>
@@ -296,7 +284,15 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
               <p className="mt-4 font-['Poppins:Regular',sans-serif] text-neutral-600 leading-7">
                 {resultSummary.description}
               </p>
-              {resultSummary.roles?.length ? (
+              <div className="mt-5 rounded-lg border border-neutral-300 p-4 text-left">
+                <p className="font-['Poppins:Medium',sans-serif] text-neutral-800">
+                  Confidence score: {resultSummary.confidence}%
+                </p>
+                <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
+                  Top traits: {formatTraitPair(resultSummary.topTraits)}
+                </p>
+              </div>
+              {resultSummary.roles.length ? (
                 <div className="mt-6 text-left">
                   <p className="font-['Poppins:Medium',sans-serif] text-neutral-800">
                     Top roles for you:
@@ -328,7 +324,6 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
   }
 
   if (!currentQuestion) {
-    console.error("No question available at index:", currentIndex);
     return (
       <div className="min-h-screen bg-white">
         <div className="fixed left-4 top-4 z-50">
@@ -348,18 +343,6 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
     );
   }
 
-  if (!currentQuestion.options) {
-    console.error("Invalid question structure:", currentQuestion);
-    return <div>Questions not loaded</div>;
-  }
-
-  console.log("Options:", currentQuestion.options);
-
-  const optionEntries = Object.entries(currentQuestion.options).slice(0, 4) as [
-    string,
-    PsychometricOption,
-  ][];
-
   return (
     <div className="min-h-screen bg-white">
       <div className="fixed left-4 top-4 z-50">
@@ -373,33 +356,30 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
               Psychometric Questions
             </h1>
             <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
-              Question {currentIndex + 1} of {totalQuestions}
+              Question {answerHistory.length + 1} of {totalQuestions}
             </p>
           </div>
 
           <motion.div
-            key={`${module}-${currentIndex}`}
+            key={`${module}-${currentQuestion.id}-${answerHistory.length}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
             <h2 className="font-['Poppins:Medium',sans-serif] text-xl text-neutral-800 leading-8">
-              {getQuestionText(currentQuestion)}
+              {currentQuestion.text}
             </h2>
 
             <div className="mt-8 px-2">
               <div className="space-y-3">
-                {optionEntries.map(([key, option], index) => {
-                  const normalizedOption = { key, ...option };
-                  const optionValue = getOptionValue(normalizedOption, index);
-                  const optionLabel = option.text ?? getOptionLabel(normalizedOption, index);
-                  const isSelected = selectedValue === optionValue;
+                {optionEntries.map(({ key, label }) => {
+                  const isSelected = selectedValue === key;
 
                   return (
                     <button
                       key={key}
                       type="button"
-                      onClick={() => setSelectedValue(optionValue)}
+                      onClick={() => setSelectedValue(key)}
                       className={`mx-2 flex w-full items-center gap-4 rounded-xl border-2 px-5 py-4 text-left transition ${
                         isSelected
                           ? "border-neutral-800 bg-neutral-100"
@@ -410,7 +390,7 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
                         {key}.
                       </span>
                       <span className="flex-1 font-['Poppins:Medium',sans-serif] leading-relaxed text-neutral-800">
-                        {optionLabel}
+                        {label}
                       </span>
                     </button>
                   );
@@ -422,7 +402,7 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
               <button
                 type="button"
                 onClick={handlePrevious}
-                disabled={currentIndex === 0}
+                disabled={answerHistory.length === 0}
                 className="rounded-lg border border-neutral-300 px-6 py-3 text-sm font-medium text-neutral-800 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Previous
@@ -433,7 +413,7 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
                 disabled={!selectedValue}
                 className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLastQuestion ? "Finish" : "Next"}
+                Next
               </button>
             </div>
           </motion.div>

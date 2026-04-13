@@ -5,10 +5,34 @@
     "question": "Your college is organizing a large annual fest. You've been asked to volunteer. Which role excites you the most?",
     "sector_mapping": true,
     "options": {
-      "A": {"text": "Managing the event app, digital registrations, and tech setup", "impact": {"Sector": "Tech"}},
-      "B": {"text": "Designing banners, stage decor, and the social media vibe", "impact": {"Sector": "Creative"}},
-      "C": {"text": "Handling budgets, sponsorships, and vendor negotiations", "impact": {"Sector": "Business"}},
-      "D": {"text": "Coordinating logistics, volunteers, and event operations", "impact": {"Sector": "Core"}}
+      "A": {
+        "text": "Managing the event app, digital registrations, and tech setup",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Designing banners, stage decor, and the social media vibe",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Handling budgets, sponsorships, and vendor negotiations",
+        "impact": {
+          "Management": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Coordinating logistics, volunteers, and event operations",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -17,10 +41,34 @@
     "question": "A startup founder visits your campus and offers internship projects. Which project would you pick?",
     "sector_mapping": true,
     "options": {
-      "A": {"text": "Build a tool that automates student timetable scheduling", "impact": {"Sector": "Tech"}},
-      "B": {"text": "Create a brand identity and marketing campaign for their product", "impact": {"Sector": "Creative"}},
-      "C": {"text": "Analyze their revenue model and suggest a growth strategy", "impact": {"Sector": "Business"}},
-      "D": {"text": "Set up their supply chain process and operations workflow", "impact": {"Sector": "Core"}}
+      "A": {
+        "text": "Build a tool that automates student timetable scheduling",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Create a brand identity and marketing campaign for their product",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Analyze their revenue model and suggest a growth strategy",
+        "impact": {
+          "Management": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Set up their supply chain process and operations workflow",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -28,10 +76,34 @@
     "question_id": "RB_R1",
     "question": "Your team is stuck on a group project because nobody understands the data. What do you do?",
     "options": {
-      "A": {"text": "Break down the data, find patterns, and present clear insights to the team", "impact": {"Analytical": 2}},
-      "B": {"text": "Suggest a visual or creative way to represent the data that everyone can understand", "impact": {"Creative": 2}},
-      "C": {"text": "Take charge, assign parts to each member, and set a timeline", "impact": {"Leadership": 2}},
-      "D": {"text": "Start compiling whatever data exists and begin building the report immediately", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Break down the data, find patterns, and present clear insights to the team",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Suggest a visual or creative way to represent the data that everyone can understand",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Take charge, assign parts to each member, and set a timeline",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Start compiling whatever data exists and begin building the report immediately",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -39,10 +111,34 @@
     "question_id": "RB_R2",
     "question": "You are given a free weekend to work on anything you like for your department club. What would you do?",
     "options": {
-      "A": {"text": "Research an unsolved problem in your field and prepare a report", "impact": {"Analytical": 2}},
-      "B": {"text": "Design a new concept or idea and present it as a poster or prototype", "impact": {"Creative": 2}},
-      "C": {"text": "Plan and pitch a new initiative to the club president", "impact": {"Leadership": 2}},
-      "D": {"text": "Organize the club's existing resources, files, and upcoming tasks", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Research an unsolved problem in your field and prepare a report",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Design a new concept or idea and present it as a poster or prototype",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Plan and pitch a new initiative to the club president",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Organize the club's existing resources, files, and upcoming tasks",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -50,10 +146,34 @@
     "question_id": "RB_R3",
     "question": "A classmate's business idea has potential but their presentation is very unorganized. You decide to help. What's your first step?",
     "options": {
-      "A": {"text": "Review their numbers and assumptions to see if the idea is actually viable", "impact": {"Analytical": 2}},
-      "B": {"text": "Redesign the slides to make them visually compelling and easy to follow", "impact": {"Creative": 2}},
-      "C": {"text": "Rally a few classmates to form a team and divide responsibilities", "impact": {"Leadership": 2}},
-      "D": {"text": "Build a checklist of all missing parts and start filling them in one by one", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Review their numbers and assumptions to see if the idea is actually viable",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Redesign the slides to make them visually compelling and easy to follow",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Rally a few classmates to form a team and divide responsibilities",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Build a checklist of all missing parts and start filling them in one by one",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -61,10 +181,34 @@
     "question_id": "RB_R4",
     "question": "You notice that attendance at your college club events has been dropping. What's your approach?",
     "options": {
-      "A": {"text": "Gather feedback, map attendance trends, and identify why people stopped coming", "impact": {"Analytical": 2}},
-      "B": {"text": "Brainstorm a fresh, exciting event concept that feels totally different from the usual", "impact": {"Creative": 2}},
-      "C": {"text": "Convene a team meeting, assign tasks, and personally follow up to ensure everyone acts", "impact": {"Leadership": 2}},
-      "D": {"text": "Immediately start reaching out to students, booking venues, and scheduling the next event", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Gather feedback, map attendance trends, and identify why people stopped coming",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Brainstorm a fresh, exciting event concept that feels totally different from the usual",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Convene a team meeting, assign tasks, and personally follow up to ensure everyone acts",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Immediately start reaching out to students, booking venues, and scheduling the next event",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -72,10 +216,34 @@
     "question_id": "RB_R5",
     "question": "Your professor asks the class to solve a real community problem as a semester project. What role do you naturally take?",
     "options": {
-      "A": {"text": "Researcher who digs into the root cause with data and analysis", "impact": {"Analytical": 2}},
-      "B": {"text": "Ideator who comes up with the most original and impactful solution", "impact": {"Creative": 2}},
-      "C": {"text": "Project lead who keeps the team aligned and on track", "impact": {"Leadership": 2}},
-      "D": {"text": "Doer who starts building, testing, and delivering results early", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Researcher who digs into the root cause with data and analysis",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Ideator who comes up with the most original and impactful solution",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Project lead who keeps the team aligned and on track",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Doer who starts building, testing, and delivering results early",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -83,10 +251,34 @@
     "question_id": "RB_R6",
     "question": "Your team wins a competition and gets funding to build something. The first thing you focus on is:",
     "options": {
-      "A": {"text": "Running a feasibility analysis and studying similar projects that worked or failed", "impact": {"Analytical": 2}},
-      "B": {"text": "Sketching out what the product or experience will look and feel like", "impact": {"Creative": 2}},
-      "C": {"text": "Defining roles, responsibilities, and milestones for the team", "impact": {"Leadership": 2}},
-      "D": {"text": "Getting a basic working version or prototype out as quickly as possible", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Running a feasibility analysis and studying similar projects that worked or failed",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Sketching out what the product or experience will look and feel like",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Defining roles, responsibilities, and milestones for the team",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Getting a basic working version or prototype out as quickly as possible",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -94,10 +286,34 @@
     "question_id": "RB_R7",
     "question": "A new student joins your project group midway. How do you handle it?",
     "options": {
-      "A": {"text": "Assess their strengths and figure out where they add the most value to the work", "impact": {"Analytical": 2}},
-      "B": {"text": "Welcome them warmly and brainstorm fresh ideas together to energize the group", "impact": {"Creative": 2}},
-      "C": {"text": "Brief them on roles, assign them a task, and ensure they are integrated smoothly", "impact": {"Leadership": 2}},
-      "D": {"text": "Hand them a clear task list so they can start contributing right away", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Assess their strengths and figure out where they add the most value to the work",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Welcome them warmly and brainstorm fresh ideas together to energize the group",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Brief them on roles, assign them a task, and ensure they are integrated smoothly",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Hand them a clear task list so they can start contributing right away",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -105,10 +321,34 @@
     "question_id": "RB_R8",
     "question": "Two teammates in your group are having a conflict over how to approach the project. You:",
     "options": {
-      "A": {"text": "Listen to both sides carefully and suggest the option with the strongest logical basis", "impact": {"Analytical": 2}},
-      "B": {"text": "Propose a creative middle ground that blends the best of both ideas", "impact": {"Creative": 2}},
-      "C": {"text": "Mediate the discussion, make a decision, and keep the team moving forward", "impact": {"Leadership": 2}},
-      "D": {"text": "Ask both to move on and focus on completing the work within the deadline", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Listen to both sides carefully and suggest the option with the strongest logical basis",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Propose a creative middle ground that blends the best of both ideas",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Mediate the discussion, make a decision, and keep the team moving forward",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Ask both to move on and focus on completing the work within the deadline",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -116,10 +356,34 @@
     "question_id": "RB_R9",
     "question": "You are assigned to represent your department at an inter-college quiz. How do you prepare?",
     "options": {
-      "A": {"text": "Study past question papers, find patterns, and prepare topic-wise summaries", "impact": {"Analytical": 2}},
-      "B": {"text": "Create engaging mind maps and visual study tools to make learning fun", "impact": {"Creative": 2}},
-      "C": {"text": "Form a study group, assign topics, and practice as a team", "impact": {"Leadership": 2}},
-      "D": {"text": "Set a daily study target and grind through the material consistently until quiz day", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Study past question papers, find patterns, and prepare topic-wise summaries",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Create engaging mind maps and visual study tools to make learning fun",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Form a study group, assign topics, and practice as a team",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Set a daily study target and grind through the material consistently until quiz day",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -127,10 +391,34 @@
     "question_id": "RB_R10",
     "question": "Your department is launching a campaign to reduce plastic use on campus. What's your contribution?",
     "options": {
-      "A": {"text": "Study the data on plastic waste on campus and identify the top problem areas", "impact": {"Analytical": 2}},
-      "B": {"text": "Design eye-catching posters and videos to spread awareness creatively", "impact": {"Creative": 2}},
-      "C": {"text": "Coordinate volunteers, set targets, and drive the campaign from the front", "impact": {"Leadership": 2}},
-      "D": {"text": "Set up collection drives, track progress daily, and ensure targets are met", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Study the data on plastic waste on campus and identify the top problem areas",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Design eye-catching posters and videos to spread awareness creatively",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Coordinate volunteers, set targets, and drive the campaign from the front",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Set up collection drives, track progress daily, and ensure targets are met",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -138,10 +426,34 @@
     "question_id": "RB_R11",
     "question": "You are asked to write an article for the college newsletter about a recent campus event. You approach it by:",
     "options": {
-      "A": {"text": "Reviewing feedback and data from attendees to write a factual, insight-driven piece", "impact": {"Analytical": 2}},
-      "B": {"text": "Writing a vivid, story-driven narrative that captures the spirit and emotion of the event", "impact": {"Creative": 2}},
-      "C": {"text": "Interviewing key organizers and crafting a piece that highlights team leadership", "impact": {"Leadership": 2}},
-      "D": {"text": "Quickly drafting the article, getting it reviewed, and submitting it ahead of deadline", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Reviewing feedback and data from attendees to write a factual, insight-driven piece",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Writing a vivid, story-driven narrative that captures the spirit and emotion of the event",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Interviewing key organizers and crafting a piece that highlights team leadership",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Quickly drafting the article, getting it reviewed, and submitting it ahead of deadline",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -149,10 +461,34 @@
     "question_id": "RB_R12",
     "question": "You have one month before placement season. You decide to spend it:",
     "options": {
-      "A": {"text": "Identifying which companies suit your profile and analysing what skills they look for", "impact": {"Analytical": 2}},
-      "B": {"text": "Building a unique portfolio or side project that makes you stand out", "impact": {"Creative": 2}},
-      "C": {"text": "Mentoring peers while also preparing yourself and running group mock sessions", "impact": {"Leadership": 2}},
-      "D": {"text": "Setting daily targets, practising aptitude tests, and completing your resume step by step", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Identifying which companies suit your profile and analysing what skills they look for",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Building a unique portfolio or side project that makes you stand out",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Mentoring peers while also preparing yourself and running group mock sessions",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Setting daily targets, practising aptitude tests, and completing your resume step by step",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
   {
@@ -160,22 +496,69 @@
     "question_id": "RB_R13",
     "question": "Your college hackathon allows teams of four. After forming your team, what's the first thing you do?",
     "options": {
-      "A": {"text": "Map out the problem space, research existing solutions, and identify the biggest gap", "impact": {"Analytical": 2}},
-      "B": {"text": "Brainstorm wild, outside-the-box ideas before narrowing down to the best one", "impact": {"Creative": 2}},
-      "C": {"text": "Define each person's strengths, assign roles, and set check-in milestones", "impact": {"Leadership": 2}},
-      "D": {"text": "Start building a rough version immediately and iterate from there", "impact": {"Execution": 2}}
+      "A": {
+        "text": "Map out the problem space, research existing solutions, and identify the biggest gap",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "B": {
+        "text": "Brainstorm wild, outside-the-box ideas before narrowing down to the best one",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Define each person's strengths, assign roles, and set check-in milestones",
+        "impact": {
+          "Leadership": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Start building a rough version immediately and iterate from there",
+        "impact": {
+          "Execution": 2,
+          "Structured": 1
+        }
+      }
     }
   },
-
   {
     "module": "learning_path",
     "question_id": "LP_1",
     "question": "Your exams are in two weeks. A classmate who scored well last semester offers to help. What kind of help do you prefer?",
     "options": {
-      "A": {"text": "Give me a crisp cheat sheet of the most important points — I'll do the rest", "impact": {"Short": 2}},
-      "B": {"text": "Explain each concept in depth so I truly understand the logic behind it", "impact": {"Elaborate": 2}},
-      "C": {"text": "Walk me through solved problems and real examples step by step", "impact": {"Realistic": 2}},
-      "D": {"text": "Let me teach it back to you so I can test my own understanding", "impact": {"Elaborate": 1, "Realistic": 1}}
+      "A": {
+        "text": "Give me a crisp cheat sheet of the most important points — I'll do the rest",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Explain each concept in depth so I truly understand the logic behind it",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Walk me through solved problems and real examples step by step",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Let me teach it back to you so I can test my own understanding",
+        "impact": {
+          "Elaborate": 1,
+          "Realistic": 1
+        }
+      }
     }
   },
   {
@@ -183,10 +566,34 @@
     "question_id": "LP_2",
     "question": "You come across a new topic in your syllabus you know nothing about. How do you tackle it?",
     "options": {
-      "A": {"text": "Watch a 5-minute summary video and move on — I'll come back if needed", "impact": {"Short": 2}},
-      "B": {"text": "Read the full chapter, take detailed notes, and understand every section", "impact": {"Elaborate": 2}},
-      "C": {"text": "Find a practical exercise or case study related to the topic and learn by doing", "impact": {"Realistic": 2}},
-      "D": {"text": "Search for a visual diagram or framework that summarizes the whole thing quickly", "impact": {"Short": 2}}
+      "A": {
+        "text": "Watch a 5-minute summary video and move on — I'll come back if needed",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Read the full chapter, take detailed notes, and understand every section",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Find a practical exercise or case study related to the topic and learn by doing",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Search for a visual diagram or framework that summarizes the whole thing quickly",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -194,10 +601,34 @@
     "question_id": "LP_3",
     "question": "A workshop on public speaking is being offered. You sign up. What do you hope to get out of it?",
     "options": {
-      "A": {"text": "A list of the top five tips I can apply immediately in my next presentation", "impact": {"Short": 2}},
-      "B": {"text": "Deep knowledge of how communication works — body language, tone, structure, psychology", "impact": {"Elaborate": 2}},
-      "C": {"text": "Live practice sessions where I can speak and get real-time feedback", "impact": {"Realistic": 2}},
-      "D": {"text": "Video recordings of expert speakers I can analyse and learn from at my own pace", "impact": {"Short": 1, "Realistic": 1}}
+      "A": {
+        "text": "A list of the top five tips I can apply immediately in my next presentation",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Deep knowledge of how communication works — body language, tone, structure, psychology",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Live practice sessions where I can speak and get real-time feedback",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Video recordings of expert speakers I can analyse and learn from at my own pace",
+        "impact": {
+          "Short": 1,
+          "Realistic": 1
+        }
+      }
     }
   },
   {
@@ -205,10 +636,34 @@
     "question_id": "LP_4",
     "question": "You have just one hour before a class test on a topic you haven't studied. What do you do?",
     "options": {
-      "A": {"text": "Skim the key headings, definitions, and formulas — done in 30 minutes", "impact": {"Short": 2}},
-      "B": {"text": "Read through the chapter carefully and absorb as much as possible", "impact": {"Elaborate": 2}},
-      "C": {"text": "Attempt previous year questions immediately and learn from the mistakes", "impact": {"Realistic": 2}},
-      "D": {"text": "Ask a friend to quiz me verbally and explain anything I get wrong", "impact": {"Realistic": 1, "Short": 1}}
+      "A": {
+        "text": "Skim the key headings, definitions, and formulas — done in 30 minutes",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Read through the chapter carefully and absorb as much as possible",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Attempt previous year questions immediately and learn from the mistakes",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Ask a friend to quiz me verbally and explain anything I get wrong",
+        "impact": {
+          "Realistic": 1,
+          "Short": 1
+        }
+      }
     }
   },
   {
@@ -216,10 +671,34 @@
     "question_id": "LP_5",
     "question": "You are learning to use a new software tool for your college project. What's your go-to approach?",
     "options": {
-      "A": {"text": "Check a quick-start guide or two-minute tutorial and begin using it right away", "impact": {"Short": 2}},
-      "B": {"text": "Go through the full official documentation to understand every feature", "impact": {"Elaborate": 2}},
-      "C": {"text": "Open the tool and start experimenting — figure it out by trial and error", "impact": {"Realistic": 2}},
-      "D": {"text": "Follow along with a hands-on project tutorial that shows real use cases", "impact": {"Realistic": 2}}
+      "A": {
+        "text": "Check a quick-start guide or two-minute tutorial and begin using it right away",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Go through the full official documentation to understand every feature",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Open the tool and start experimenting — figure it out by trial and error",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Follow along with a hands-on project tutorial that shows real use cases",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -227,10 +706,34 @@
     "question_id": "LP_6",
     "question": "Your professor finishes a lecture but you're still confused about one concept. What do you do next?",
     "options": {
-      "A": {"text": "Google a quick explanation or summary — usually one article is enough to clarify it", "impact": {"Short": 2}},
-      "B": {"text": "Read multiple explanations, textbook chapters, and research the concept thoroughly", "impact": {"Elaborate": 2}},
-      "C": {"text": "Try applying the concept to a real-world example until it clicks", "impact": {"Realistic": 2}},
-      "D": {"text": "Discuss it with a classmate and explain it to each other until it makes sense", "impact": {"Realistic": 1, "Elaborate": 1}}
+      "A": {
+        "text": "Google a quick explanation or summary — usually one article is enough to clarify it",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Read multiple explanations, textbook chapters, and research the concept thoroughly",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Try applying the concept to a real-world example until it clicks",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Discuss it with a classmate and explain it to each other until it makes sense",
+        "impact": {
+          "Realistic": 1,
+          "Elaborate": 1
+        }
+      }
     }
   },
   {
@@ -238,10 +741,34 @@
     "question_id": "LP_7",
     "question": "A senior shares a 300-page reference book for an upcoming project. Your reaction is:",
     "options": {
-      "A": {"text": "Skip to the summary sections and key highlights — that's all I need", "impact": {"Short": 2}},
-      "B": {"text": "Read it cover to cover — I want to understand the full picture before I start", "impact": {"Elaborate": 2}},
-      "C": {"text": "Use it as a reference while working on the project rather than reading it upfront", "impact": {"Realistic": 2}},
-      "D": {"text": "Search for a summarized version or a recorded lecture on the same topic", "impact": {"Short": 2}}
+      "A": {
+        "text": "Skip to the summary sections and key highlights — that's all I need",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Read it cover to cover — I want to understand the full picture before I start",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Use it as a reference while working on the project rather than reading it upfront",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Search for a summarized version or a recorded lecture on the same topic",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -249,10 +776,34 @@
     "question_id": "LP_8",
     "question": "You are preparing for a group presentation. How do you get your part ready?",
     "options": {
-      "A": {"text": "Read a few sources, jot down key points, and prepare concise slides quickly", "impact": {"Short": 2}},
-      "B": {"text": "Research deeply, cross-reference multiple sources, and build a solid narrative", "impact": {"Elaborate": 2}},
-      "C": {"text": "Rehearse it out loud multiple times and present it to a friend for feedback", "impact": {"Realistic": 2}},
-      "D": {"text": "Use diagrams, examples, and scenarios to make the content feel more real", "impact": {"Realistic": 1, "Elaborate": 1}}
+      "A": {
+        "text": "Read a few sources, jot down key points, and prepare concise slides quickly",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Research deeply, cross-reference multiple sources, and build a solid narrative",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Rehearse it out loud multiple times and present it to a friend for feedback",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Use diagrams, examples, and scenarios to make the content feel more real",
+        "impact": {
+          "Realistic": 1,
+          "Elaborate": 1
+        }
+      }
     }
   },
   {
@@ -260,10 +811,34 @@
     "question_id": "LP_9",
     "question": "Your college offers two elective courses. One is a 5-hour intensive crash course, the other is a 3-month deep-dive. You choose:",
     "options": {
-      "A": {"text": "The crash course — I learn fast and I just need the essentials", "impact": {"Short": 2}},
-      "B": {"text": "The 3-month course — I want to master the subject properly", "impact": {"Elaborate": 2}},
-      "C": {"text": "Whichever one includes live projects, field visits, or real work", "impact": {"Realistic": 2}},
-      "D": {"text": "I would check the syllabus and pick based on what the job market expects", "impact": {"Short": 1, "Realistic": 1}}
+      "A": {
+        "text": "The crash course — I learn fast and I just need the essentials",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "The 3-month course — I want to master the subject properly",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Whichever one includes live projects, field visits, or real work",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "I would check the syllabus and pick based on what the job market expects",
+        "impact": {
+          "Short": 1,
+          "Realistic": 1
+        }
+      }
     }
   },
   {
@@ -271,10 +846,34 @@
     "question_id": "LP_10",
     "question": "You want to learn photography as a new skill. How do you start?",
     "options": {
-      "A": {"text": "Watch a 10-minute beginner video and start clicking photos right away", "impact": {"Short": 2}},
-      "B": {"text": "Study the theory of lighting, composition, and camera settings before touching the camera", "impact": {"Elaborate": 2}},
-      "C": {"text": "Just pick up the camera and learn by experimenting with different shots", "impact": {"Realistic": 2}},
-      "D": {"text": "Join a photography walk or workshop where you practice outdoors with guidance", "impact": {"Realistic": 2}}
+      "A": {
+        "text": "Watch a 10-minute beginner video and start clicking photos right away",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Study the theory of lighting, composition, and camera settings before touching the camera",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Just pick up the camera and learn by experimenting with different shots",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Join a photography walk or workshop where you practice outdoors with guidance",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -282,10 +881,34 @@
     "question_id": "LP_11",
     "question": "You are asked to revise an entire subject for a major exam in five days. You plan to:",
     "options": {
-      "A": {"text": "Create a tight schedule covering only the most important topics and formulas", "impact": {"Short": 2}},
-      "B": {"text": "Revisit every chapter and make sure I understand everything from scratch", "impact": {"Elaborate": 2}},
-      "C": {"text": "Solve lots of past papers and practice questions to prepare through doing", "impact": {"Realistic": 2}},
-      "D": {"text": "Form a study group and teach each other difficult topics to reinforce learning", "impact": {"Realistic": 1, "Elaborate": 1}}
+      "A": {
+        "text": "Create a tight schedule covering only the most important topics and formulas",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Revisit every chapter and make sure I understand everything from scratch",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Solve lots of past papers and practice questions to prepare through doing",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Form a study group and teach each other difficult topics to reinforce learning",
+        "impact": {
+          "Realistic": 1,
+          "Elaborate": 1
+        }
+      }
     }
   },
   {
@@ -293,10 +916,34 @@
     "question_id": "LP_12",
     "question": "A TED Talk you watch introduces a fascinating idea you hadn't considered before. You:",
     "options": {
-      "A": {"text": "Remember the key takeaway and move on — it was an interesting idea", "impact": {"Short": 2}},
-      "B": {"text": "Go down a research rabbit hole — read articles, books, and debates on it", "impact": {"Elaborate": 2}},
-      "C": {"text": "Think about how this idea applies to something happening in your own life or field", "impact": {"Realistic": 2}},
-      "D": {"text": "Share it with a friend and discuss what it means for both of you", "impact": {"Elaborate": 1, "Realistic": 1}}
+      "A": {
+        "text": "Remember the key takeaway and move on — it was an interesting idea",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Go down a research rabbit hole — read articles, books, and debates on it",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Think about how this idea applies to something happening in your own life or field",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Share it with a friend and discuss what it means for both of you",
+        "impact": {
+          "Elaborate": 1,
+          "Realistic": 1
+        }
+      }
     }
   },
   {
@@ -304,10 +951,34 @@
     "question_id": "LP_13",
     "question": "You receive feedback that your assignment lacked depth. Your response is:",
     "options": {
-      "A": {"text": "Look up what specific points were missing and fix just those sections", "impact": {"Short": 2}},
-      "B": {"text": "Rewrite the whole thing with much more research and richer explanations", "impact": {"Elaborate": 2}},
-      "C": {"text": "Look for a strong example of this type of work and model your revision after it", "impact": {"Realistic": 2}},
-      "D": {"text": "Ask the professor exactly what 'depth' means so you don't miss the mark again", "impact": {"Elaborate": 1, "Realistic": 1}}
+      "A": {
+        "text": "Look up what specific points were missing and fix just those sections",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Rewrite the whole thing with much more research and richer explanations",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Look for a strong example of this type of work and model your revision after it",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Ask the professor exactly what 'depth' means so you don't miss the mark again",
+        "impact": {
+          "Elaborate": 1,
+          "Realistic": 1
+        }
+      }
     }
   },
   {
@@ -315,10 +986,34 @@
     "question_id": "LP_14",
     "question": "You want to learn basic accounting for your startup idea. Which approach suits you best?",
     "options": {
-      "A": {"text": "Read a one-page explainer on profit, loss, and balance sheets and start tracking expenses", "impact": {"Short": 2}},
-      "B": {"text": "Take a full online course and understand all the principles before applying anything", "impact": {"Elaborate": 2}},
-      "C": {"text": "Start recording your startup's actual transactions and learn what each entry means", "impact": {"Realistic": 2}},
-      "D": {"text": "Use a free accounting tool and figure out how it works as I enter real data", "impact": {"Realistic": 2}}
+      "A": {
+        "text": "Read a one-page explainer on profit, loss, and balance sheets and start tracking expenses",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Take a full online course and understand all the principles before applying anything",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Start recording your startup's actual transactions and learn what each entry means",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Use a free accounting tool and figure out how it works as I enter real data",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -326,22 +1021,69 @@
     "question_id": "LP_15",
     "question": "A friend describes a book that changed the way they think about money. You:",
     "options": {
-      "A": {"text": "Ask for the top three lessons from the book — I don't need to read the whole thing", "impact": {"Short": 2}},
-      "B": {"text": "Order the book and plan to read it cover to cover with annotations", "impact": {"Elaborate": 2}},
-      "C": {"text": "Ask how they applied the lessons in real life and try to do the same", "impact": {"Realistic": 2}},
-      "D": {"text": "Search for a podcast or interview with the author for a condensed version", "impact": {"Short": 2}}
+      "A": {
+        "text": "Ask for the top three lessons from the book — I don't need to read the whole thing",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      },
+      "B": {
+        "text": "Order the book and plan to read it cover to cover with annotations",
+        "impact": {
+          "Elaborate": 2,
+          "Analytical": 1
+        }
+      },
+      "C": {
+        "text": "Ask how they applied the lessons in real life and try to do the same",
+        "impact": {
+          "Realistic": 2,
+          "Execution": 1
+        }
+      },
+      "D": {
+        "text": "Search for a podcast or interview with the author for a condensed version",
+        "impact": {
+          "Short": 2,
+          "Execution": 1
+        }
+      }
     }
   },
-
   {
     "module": "job_discovery",
     "question_id": "JD_1",
     "question": "You are handed a project with no clear instructions, just a vague goal. What's your reaction?",
     "options": {
-      "A": {"text": "I love it — I'll invent my own approach and make something unexpected", "impact": {"Creative": 2}},
-      "B": {"text": "I'll first build a clear plan, define steps, and create a framework before starting", "impact": {"Structured": 2}},
-      "C": {"text": "I'll dig into the available data and research to figure out the best path forward", "impact": {"Analytical": 2}},
-      "D": {"text": "I'll ask clarifying questions, then start executing once I have enough direction", "impact": {"Structured": 1, "Analytical": 1}}
+      "A": {
+        "text": "I love it — I'll invent my own approach and make something unexpected",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "I'll first build a clear plan, define steps, and create a framework before starting",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "I'll dig into the available data and research to figure out the best path forward",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "I'll ask clarifying questions, then start executing once I have enough direction",
+        "impact": {
+          "Structured": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -349,10 +1091,34 @@
     "question_id": "JD_2",
     "question": "Your team needs to decide between two equally priced solutions. How do you approach the decision?",
     "options": {
-      "A": {"text": "Go with the one that feels more innovative and interesting to work on", "impact": {"Creative": 2}},
-      "B": {"text": "Compare both using a structured checklist of criteria before deciding", "impact": {"Structured": 2}},
-      "C": {"text": "Analyse the pros and cons of each with data, case studies, and evidence", "impact": {"Analytical": 2}},
-      "D": {"text": "Let the person with the most relevant experience make the final call", "impact": {"Structured": 1}}
+      "A": {
+        "text": "Go with the one that feels more innovative and interesting to work on",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Compare both using a structured checklist of criteria before deciding",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Analyse the pros and cons of each with data, case studies, and evidence",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Let the person with the most relevant experience make the final call",
+        "impact": {
+          "Structured": 1,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -360,10 +1126,34 @@
     "question_id": "JD_3",
     "question": "It's a slow work week with no urgent tasks. What do you naturally find yourself doing?",
     "options": {
-      "A": {"text": "Tinkering on a side idea or making something just for the fun of it", "impact": {"Creative": 2}},
-      "B": {"text": "Organising pending tasks, updating documents, and planning the next sprint", "impact": {"Structured": 2}},
-      "C": {"text": "Reviewing past project outcomes and identifying what could have been done better", "impact": {"Analytical": 2}},
-      "D": {"text": "Learning something new that might be useful in an upcoming project", "impact": {"Analytical": 1, "Creative": 1}}
+      "A": {
+        "text": "Tinkering on a side idea or making something just for the fun of it",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Organising pending tasks, updating documents, and planning the next sprint",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Reviewing past project outcomes and identifying what could have been done better",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Learning something new that might be useful in an upcoming project",
+        "impact": {
+          "Analytical": 1,
+          "Creative": 1
+        }
+      }
     }
   },
   {
@@ -371,10 +1161,34 @@
     "question_id": "JD_4",
     "question": "A friend asks for career advice. They have three job offers and can't decide. You help by:",
     "options": {
-      "A": {"text": "Encouraging them to follow the role that excites them most creatively", "impact": {"Creative": 2}},
-      "B": {"text": "Building a decision matrix with salary, growth, culture, and location scores", "impact": {"Structured": 2}},
-      "C": {"text": "Researching each company's trajectory, reviews, and market positioning", "impact": {"Analytical": 2}},
-      "D": {"text": "Asking them what matters most to them personally and guiding from there", "impact": {"Structured": 1, "Creative": 1}}
+      "A": {
+        "text": "Encouraging them to follow the role that excites them most creatively",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Building a decision matrix with salary, growth, culture, and location scores",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Researching each company's trajectory, reviews, and market positioning",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Asking them what matters most to them personally and guiding from there",
+        "impact": {
+          "Structured": 1,
+          "Creative": 1
+        }
+      }
     }
   },
   {
@@ -382,10 +1196,34 @@
     "question_id": "JD_5",
     "question": "You are asked to plan a surprise celebration for a departing colleague. You immediately:",
     "options": {
-      "A": {"text": "Brainstorm a theme and a unique personal touch that will make it memorable", "impact": {"Creative": 2}},
-      "B": {"text": "Make a checklist: venue, food, invitations, time — one task at a time", "impact": {"Structured": 2}},
-      "C": {"text": "Check what events have worked well in the past and model this after that", "impact": {"Analytical": 2}},
-      "D": {"text": "Ask a few colleagues what they would enjoy and plan based on the responses", "impact": {"Structured": 1, "Analytical": 1}}
+      "A": {
+        "text": "Brainstorm a theme and a unique personal touch that will make it memorable",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Make a checklist: venue, food, invitations, time — one task at a time",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Check what events have worked well in the past and model this after that",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Ask a few colleagues what they would enjoy and plan based on the responses",
+        "impact": {
+          "Structured": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -393,10 +1231,34 @@
     "question_id": "JD_6",
     "question": "Your work environment is being redesigned. What kind of workspace would you thrive in?",
     "options": {
-      "A": {"text": "An open, flexible space with whiteboards, colour, and space to move around", "impact": {"Creative": 2}},
-      "B": {"text": "A quiet, organised desk with clear systems and minimal distractions", "impact": {"Structured": 2}},
-      "C": {"text": "A research-friendly space with dual monitors, access to data, and documentation", "impact": {"Analytical": 2}},
-      "D": {"text": "A collaborative zone where I can discuss, debate, and co-create ideas", "impact": {"Creative": 1, "Analytical": 1}}
+      "A": {
+        "text": "An open, flexible space with whiteboards, colour, and space to move around",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "A quiet, organised desk with clear systems and minimal distractions",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "A research-friendly space with dual monitors, access to data, and documentation",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "A collaborative zone where I can discuss, debate, and co-create ideas",
+        "impact": {
+          "Creative": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -404,10 +1266,34 @@
     "question_id": "JD_7",
     "question": "Your manager tells you that your last project exceeded expectations. What did you most likely do?",
     "options": {
-      "A": {"text": "Added something original that nobody had thought of before", "impact": {"Creative": 2}},
-      "B": {"text": "Followed the process rigorously and delivered everything on time without gaps", "impact": {"Structured": 2}},
-      "C": {"text": "Dug deeper than required and discovered insights that changed the approach", "impact": {"Analytical": 2}},
-      "D": {"text": "Stayed aligned with the goal and made sure every stakeholder was happy", "impact": {"Structured": 1, "Analytical": 1}}
+      "A": {
+        "text": "Added something original that nobody had thought of before",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Followed the process rigorously and delivered everything on time without gaps",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Dug deeper than required and discovered insights that changed the approach",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Stayed aligned with the goal and made sure every stakeholder was happy",
+        "impact": {
+          "Structured": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -415,10 +1301,34 @@
     "question_id": "JD_8",
     "question": "During a group discussion, the team is stuck and going in circles. What do you do?",
     "options": {
-      "A": {"text": "Throw out a completely different angle that shifts the whole conversation", "impact": {"Creative": 2}},
-      "B": {"text": "Suggest breaking the discussion into smaller defined sub-questions with a clear agenda", "impact": {"Structured": 2}},
-      "C": {"text": "Ask the group to step back and look at what the actual data or evidence says", "impact": {"Analytical": 2}},
-      "D": {"text": "Summarise where everyone agrees and help find common ground from there", "impact": {"Structured": 1}}
+      "A": {
+        "text": "Throw out a completely different angle that shifts the whole conversation",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Suggest breaking the discussion into smaller defined sub-questions with a clear agenda",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Ask the group to step back and look at what the actual data or evidence says",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Summarise where everyone agrees and help find common ground from there",
+        "impact": {
+          "Structured": 1,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -426,10 +1336,34 @@
     "question_id": "JD_9",
     "question": "You are asked to describe your ideal job in one sentence. Which resonates most?",
     "options": {
-      "A": {"text": "A role where I can invent, design, and express original ideas every day", "impact": {"Creative": 2}},
-      "B": {"text": "A role with clear systems, defined goals, and measurable outcomes", "impact": {"Structured": 2}},
-      "C": {"text": "A role where I can dig into complex problems and produce well-researched insights", "impact": {"Analytical": 2}},
-      "D": {"text": "A role where I can learn new things constantly and adapt to new challenges", "impact": {"Creative": 1, "Analytical": 1}}
+      "A": {
+        "text": "A role where I can invent, design, and express original ideas every day",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "A role with clear systems, defined goals, and measurable outcomes",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "A role where I can dig into complex problems and produce well-researched insights",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "A role where I can learn new things constantly and adapt to new challenges",
+        "impact": {
+          "Creative": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -437,10 +1371,34 @@
     "question_id": "JD_10",
     "question": "Your phone's storage is almost full. How do you handle it?",
     "options": {
-      "A": {"text": "Delete whatever looks old and move on — I'll deal with the rest later", "impact": {"Creative": 1}},
-      "B": {"text": "Sort through everything folder by folder and follow a system to clean it up", "impact": {"Structured": 2}},
-      "C": {"text": "Check what's taking the most space, analyse the breakdown, and delete strategically", "impact": {"Analytical": 2}},
-      "D": {"text": "Back it all up to the cloud and then clear everything in one go", "impact": {"Structured": 1, "Analytical": 1}}
+      "A": {
+        "text": "Delete whatever looks old and move on — I'll deal with the rest later",
+        "impact": {
+          "Creative": 1,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Sort through everything folder by folder and follow a system to clean it up",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Check what's taking the most space, analyse the breakdown, and delete strategically",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Back it all up to the cloud and then clear everything in one go",
+        "impact": {
+          "Structured": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -448,10 +1406,34 @@
     "question_id": "JD_11",
     "question": "You're assigned to write a report that will be presented to senior leadership. You begin by:",
     "options": {
-      "A": {"text": "Thinking about how to make it visually compelling and memorable to read", "impact": {"Creative": 2}},
-      "B": {"text": "Creating an outline with sections, headings, and a clear writing plan", "impact": {"Structured": 2}},
-      "C": {"text": "Gathering all relevant data, reviewing past reports, and building arguments from evidence", "impact": {"Analytical": 2}},
-      "D": {"text": "Starting with the key message I want to land and working backwards from there", "impact": {"Structured": 1, "Creative": 1}}
+      "A": {
+        "text": "Thinking about how to make it visually compelling and memorable to read",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Creating an outline with sections, headings, and a clear writing plan",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Gathering all relevant data, reviewing past reports, and building arguments from evidence",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Starting with the key message I want to land and working backwards from there",
+        "impact": {
+          "Structured": 1,
+          "Creative": 1
+        }
+      }
     }
   },
   {
@@ -459,10 +1441,34 @@
     "question_id": "JD_12",
     "question": "A project you are working on hits a major unexpected problem. Your first instinct is to:",
     "options": {
-      "A": {"text": "Reframe the problem as an opportunity and brainstorm creative workarounds", "impact": {"Creative": 2}},
-      "B": {"text": "Map out the impact of the problem and work through a step-by-step recovery plan", "impact": {"Structured": 2}},
-      "C": {"text": "Trace back to find the root cause before doing anything else", "impact": {"Analytical": 2}},
-      "D": {"text": "Immediately inform the team so everyone is aligned and can respond together", "impact": {"Structured": 1}}
+      "A": {
+        "text": "Reframe the problem as an opportunity and brainstorm creative workarounds",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Map out the impact of the problem and work through a step-by-step recovery plan",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Trace back to find the root cause before doing anything else",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Immediately inform the team so everyone is aligned and can respond together",
+        "impact": {
+          "Structured": 1,
+          "Execution": 1
+        }
+      }
     }
   },
   {
@@ -470,10 +1476,34 @@
     "question_id": "JD_13",
     "question": "You have two tasks: one routine and repetitive, one exploratory and uncertain. Where do you lean?",
     "options": {
-      "A": {"text": "Strongly toward the exploratory one — the uncertainty is exciting", "impact": {"Creative": 2}},
-      "B": {"text": "Toward the routine one — I like knowing exactly what to do and doing it well", "impact": {"Structured": 2}},
-      "C": {"text": "Toward the exploratory one — I love figuring things out through analysis", "impact": {"Analytical": 2}},
-      "D": {"text": "I will finish the routine task first and then explore with a fresh mind", "impact": {"Structured": 1, "Analytical": 1}}
+      "A": {
+        "text": "Strongly toward the exploratory one — the uncertainty is exciting",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Toward the routine one — I like knowing exactly what to do and doing it well",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Toward the exploratory one — I love figuring things out through analysis",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "I will finish the routine task first and then explore with a fresh mind",
+        "impact": {
+          "Structured": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -481,10 +1511,34 @@
     "question_id": "JD_14",
     "question": "You just finished a long project. How do you wind down and reflect?",
     "options": {
-      "A": {"text": "Celebrate with the team and immediately start thinking about the next creative idea", "impact": {"Creative": 2}},
-      "B": {"text": "Write a brief retrospective with lessons learned and file it for future reference", "impact": {"Structured": 2}},
-      "C": {"text": "Review the results against the original goals and analyse what worked and what didn't", "impact": {"Analytical": 2}},
-      "D": {"text": "Take a break and let the insights settle naturally before jumping into anything new", "impact": {"Creative": 1}}
+      "A": {
+        "text": "Celebrate with the team and immediately start thinking about the next creative idea",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Write a brief retrospective with lessons learned and file it for future reference",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Review the results against the original goals and analyse what worked and what didn't",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Take a break and let the insights settle naturally before jumping into anything new",
+        "impact": {
+          "Creative": 1,
+          "Analytical": 1
+        }
+      }
     }
   },
   {
@@ -492,10 +1546,34 @@
     "question_id": "JD_15",
     "question": "You overhear two colleagues debating a strategic decision. You instinctively want to:",
     "options": {
-      "A": {"text": "Jump in and suggest a completely new angle they haven't considered yet", "impact": {"Creative": 2}},
-      "B": {"text": "Bring structure to the debate by listing the key factors they should weigh", "impact": {"Structured": 2}},
-      "C": {"text": "Listen carefully and wait to see if there is evidence or data that can resolve the debate", "impact": {"Analytical": 2}},
-      "D": {"text": "Summarise both perspectives to help them see where they actually agree", "impact": {"Structured": 1}}
+      "A": {
+        "text": "Jump in and suggest a completely new angle they haven't considered yet",
+        "impact": {
+          "Creative": 2,
+          "Analytical": 1
+        }
+      },
+      "B": {
+        "text": "Bring structure to the debate by listing the key factors they should weigh",
+        "impact": {
+          "Structured": 2,
+          "Execution": 1
+        }
+      },
+      "C": {
+        "text": "Listen carefully and wait to see if there is evidence or data that can resolve the debate",
+        "impact": {
+          "Analytical": 2,
+          "Structured": 1
+        }
+      },
+      "D": {
+        "text": "Summarise both perspectives to help them see where they actually agree",
+        "impact": {
+          "Structured": 1,
+          "Execution": 1
+        }
+      }
     }
   }
 ]

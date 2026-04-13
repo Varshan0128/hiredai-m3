@@ -1,0 +1,1 @@
+Python developer with 3 years of experience in FastAPI, React, SQL, Docker, and AWS. Built REST APIs and dashboards.
