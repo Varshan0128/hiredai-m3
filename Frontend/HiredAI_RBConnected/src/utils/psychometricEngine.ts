@@ -200,102 +200,36 @@ const JOB_TRAIT_ROLE_MAP: Record<string, Omit<JobArchetype, "id" | "sig" | "envs
   },
 };
 
-const JOB_TRAIT_CATEGORY_MAP: Record<string, string> = {
-  ldr: "Execution",
-  risk: "Execution",
+type JobDiscoveryCategory =
+  | "Analytical"
+  | "Creative"
+  | "Structured"
+  | "Execution-focused"
+  | "Management-oriented";
+
+const JOB_TRAIT_CATEGORY_MAP: Record<string, JobDiscoveryCategory> = {
   dec: "Analytical",
-  flex: "Structured",
   cre: "Creative",
-  soc: "Social",
+  flex: "Structured",
+  risk: "Execution-focused",
+  ldr: "Management-oriented",
+  soc: "Management-oriented",
 };
 
-const JOB_DISCOVERY_COMBINATION_MAP: Record<
-  string,
-  Omit<JobArchetype, "id" | "sig" | "envs">
-> = {
-  "Analytical-Structured": {
-    type: "Technical Specialist",
-    sub: "Analytical and structured profile that thrives in systems, rigor, and operational clarity",
-    jobs: ["Technical Analyst", "Systems Specialist", "Process Engineer"],
-  },
-  "Structured-Analytical": {
-    type: "Technical Specialist",
-    sub: "Analytical and structured profile that thrives in systems, rigor, and operational clarity",
-    jobs: ["Technical Analyst", "Systems Specialist", "Process Engineer"],
-  },
-  "Analytical-Creative": {
-    type: "Product Innovator",
-    sub: "Combines structured thinking with originality to shape products and new ideas",
-    jobs: ["Product Strategist", "Innovation Analyst", "Product Manager"],
-  },
-  "Creative-Analytical": {
-    type: "Product Innovator",
-    sub: "Combines structured thinking with originality to shape products and new ideas",
-    jobs: ["Product Strategist", "Innovation Analyst", "Product Manager"],
-  },
-  "Creative-Structured": {
-    type: "UX Strategist",
-    sub: "Creative problem-solver who still prefers frameworks, process, and experience design logic",
-    jobs: ["UX Strategist", "Service Designer", "Experience Research Lead"],
-  },
-  "Structured-Creative": {
-    type: "UX Strategist",
-    sub: "Creative problem-solver who still prefers frameworks, process, and experience design logic",
-    jobs: ["UX Strategist", "Service Designer", "Experience Research Lead"],
-  },
-  "Execution-Structured": {
-    type: "Operations Leader",
-    sub: "Execution-oriented operator who brings consistency, delivery, and team coordination",
-    jobs: ["Operations Manager", "Program Lead", "Delivery Manager"],
-  },
-  "Structured-Execution": {
-    type: "Operations Leader",
-    sub: "Execution-oriented operator who brings consistency, delivery, and team coordination",
-    jobs: ["Operations Manager", "Program Lead", "Delivery Manager"],
-  },
-  "Execution-Analytical": {
-    type: "Business Analyst",
-    sub: "Action-minded thinker who translates analysis into practical business decisions",
-    jobs: ["Business Analyst", "Strategy Associate", "Operations Analyst"],
-  },
-  "Analytical-Execution": {
-    type: "Business Analyst",
-    sub: "Action-minded thinker who translates analysis into practical business decisions",
-    jobs: ["Business Analyst", "Strategy Associate", "Operations Analyst"],
-  },
-  "Creative-Execution": {
-    type: "Startup Builder",
-    sub: "Creative doer who likes turning ambiguous ideas into fast-moving opportunities",
-    jobs: ["Startup Operator", "Venture Builder", "Growth Product Lead"],
-  },
-  "Execution-Creative": {
-    type: "Startup Builder",
-    sub: "Creative doer who likes turning ambiguous ideas into fast-moving opportunities",
-    jobs: ["Startup Operator", "Venture Builder", "Growth Product Lead"],
-  },
+const JOB_DISCOVERY_CATEGORY_TRAITS: Record<JobDiscoveryCategory, string[]> = {
+  Analytical: ["dec"],
+  Creative: ["cre"],
+  Structured: ["flex"],
+  "Execution-focused": ["risk"],
+  "Management-oriented": ["ldr", "soc"],
 };
 
-const JOB_DISCOVERY_SINGLE_TRAIT_MAP: Record<string, Omit<JobArchetype, "id" | "sig" | "envs">> = {
-  Analytical: {
-    type: "Technical Specialist",
-    sub: "Analytical profile that prefers logic, rigor, and problem decomposition",
-    jobs: ["Technical Analyst", "Research Associate", "Systems Specialist"],
-  },
-  Creative: {
-    type: "Creative Thinker",
-    sub: "Idea-led profile that thrives on originality, reframing, and concept generation",
-    jobs: ["Creative Strategist", "Content Lead", "Innovation Associate"],
-  },
-  Structured: {
-    type: "Process Manager",
-    sub: "Organized profile that prefers clarity, consistency, and reliable execution systems",
-    jobs: ["Process Manager", "Program Coordinator", "Operations Planner"],
-  },
-  Execution: {
-    type: "Operations Specialist",
-    sub: "Action-oriented profile that likes momentum, delivery, and moving work forward quickly",
-    jobs: ["Operations Specialist", "Delivery Associate", "Program Executor"],
-  },
+const JOB_DISCOVERY_CATEGORY_BALANCE: Record<JobDiscoveryCategory, number> = {
+  Analytical: 0.88,
+  Creative: 1,
+  Structured: 1,
+  "Execution-focused": 1,
+  "Management-oriented": 1,
 };
 
 const M1: EngineModuleDefinition<ResumeArchetype> = {
@@ -2610,10 +2544,6 @@ function getTraitLabel(trait: string) {
   return MODULE_TRAIT_LABELS[state.moduleKey][trait] ?? trait;
 }
 
-function getJobCategoryLabel(trait: string) {
-  return JOB_TRAIT_CATEGORY_MAP[trait] ?? getTraitLabel(trait);
-}
-
 function createDerivedJobArchetype(
   id: string,
   mapped: Omit<JobArchetype, "id" | "sig" | "envs">,
@@ -2629,20 +2559,117 @@ function createDerivedJobArchetype(
   } satisfies JobArchetype;
 }
 
-function getSingleTraitJobArchetype(topTrait: string, topScore: number) {
-  const mapped = JOB_DISCOVERY_SINGLE_TRAIT_MAP[topTrait];
-  if (!mapped) {
-    return null;
+function capCategoryDominance(
+  scores: Record<JobDiscoveryCategory, number>,
+  maxDominance = 40,
+): Record<JobDiscoveryCategory, number> {
+  const adjusted = { ...scores };
+  for (let iteration = 0; iteration < 10; iteration += 1) {
+    const overCap = Object.entries(adjusted).filter(([, value]) => value > maxDominance) as Array<
+      [JobDiscoveryCategory, number]
+    >;
+    if (!overCap.length) {
+      break;
+    }
+
+    let overflow = 0;
+    overCap.forEach(([category, value]) => {
+      overflow += value - maxDominance;
+      adjusted[category] = maxDominance;
+    });
+
+    const underCap = (Object.entries(adjusted).filter(([, value]) => value < maxDominance) as Array<
+      [JobDiscoveryCategory, number]
+    >).map(([category]) => category);
+    if (!underCap.length) {
+      break;
+    }
+
+    const underTotal = underCap.reduce((sum, category) => sum + Math.abs(adjusted[category]), 0);
+    if (underTotal <= 0) {
+      const evenShare = overflow / underCap.length;
+      underCap.forEach((category) => {
+        adjusted[category] += evenShare;
+      });
+      continue;
+    }
+
+    underCap.forEach((category) => {
+      adjusted[category] += overflow * (Math.abs(adjusted[category]) / underTotal);
+    });
   }
 
-  return {
-    arch: createDerivedJobArchetype(
-      `job-single-${topTrait.toLowerCase()}`,
-      mapped,
-      ["Focused contributor roles", "Team-based execution", "Clarity-driven environments"],
-    ),
-    score: Math.min(96, 72 + topScore / 4),
-  } satisfies RankedArchetype;
+  const finalTotal = Object.values(adjusted).reduce((sum, value) => sum + Math.abs(value), 0);
+  if (finalTotal <= 0) {
+    return adjusted;
+  }
+
+  return Object.fromEntries(
+    Object.entries(adjusted).map(([category, value]) => [
+      category,
+      (Math.abs(value) / finalTotal) * 100,
+    ]),
+  ) as Record<JobDiscoveryCategory, number>;
+}
+
+function getJobDiscoveryCategoryScores(normalized: Record<string, number>) {
+  const totals: Record<JobDiscoveryCategory, number> = {
+    Analytical: 0,
+    Creative: 0,
+    Structured: 0,
+    "Execution-focused": 0,
+    "Management-oriented": 0,
+  };
+
+  Object.entries(normalized).forEach(([trait, value]) => {
+    const category = JOB_TRAIT_CATEGORY_MAP[trait];
+    if (!category) {
+      return;
+    }
+
+    const categoryTraitCount = JOB_DISCOVERY_CATEGORY_TRAITS[category].length;
+    const balancedWeight = JOB_DISCOVERY_CATEGORY_BALANCE[category];
+    totals[category] += (Math.abs(value) * balancedWeight) / categoryTraitCount;
+  });
+
+  const total = Object.values(totals).reduce((sum, value) => sum + Math.abs(value), 0);
+  if (total <= 0) {
+    const equalShare = 100 / Object.keys(totals).length;
+    return Object.fromEntries(
+      Object.keys(totals).map((category) => [category, equalShare]),
+    ) as Record<JobDiscoveryCategory, number>;
+  }
+
+  const normalizedTotals = Object.fromEntries(
+    Object.entries(totals).map(([category, value]) => [category, (Math.abs(value) / total) * 100]),
+  ) as Record<JobDiscoveryCategory, number>;
+
+  return capCategoryDominance(normalizedTotals, 40);
+}
+
+function toFocusPhrase(type: JobDiscoveryCategory) {
+  switch (type) {
+    case "Analytical":
+      return "analytical thinking";
+    case "Creative":
+      return "creative problem solving";
+    case "Structured":
+      return "structured decision making";
+    case "Execution-focused":
+      return "execution and follow-through";
+    case "Management-oriented":
+      return "management and coordination";
+    default:
+      return "clear working preferences";
+  }
+}
+
+function createJobDiscoveryExplanation(primary: JobDiscoveryCategory, secondary?: JobDiscoveryCategory) {
+  if (secondary) {
+    return `Based on your decision patterns and responses, you show a hybrid ${primary} + ${secondary} profile with balanced strengths across both styles.`;
+  }
+
+  return `Based on your decision patterns and responses, you show strong ${toFocusPhrase(primary)} with a clear preference for that working style.`;
 }
 
 function generateExplanation(best: EngineArchetype | null) {
@@ -2674,84 +2701,40 @@ function getJobDiscoveryBest(ranked: RankedArchetype[]) {
     return null;
   }
 
-  const topKeys = getTopTraitKeys(2);
   const normalized = getNormalizedTraitScores();
-  const confidence = getConfidence() / 100;
-  const executionScore = Math.max(normalized.ldr ?? 0, normalized.risk ?? 0);
-  const otherScores = Object.entries(normalized)
-    .filter(([trait]) => trait !== "ldr" && trait !== "risk")
-    .map(([, value]) => value);
-  const [topTraitKey] = topKeys;
-  const topTrait = topTraitKey ? getJobCategoryLabel(topTraitKey) : "";
-  const topTraitScore = topTraitKey ? normalized[topTraitKey] ?? 0 : 0;
-  const topTwoScores = topKeys.map((trait) => normalized[trait] ?? 0);
-  const topSpread =
-    topTwoScores.length >= 2 ? Math.abs((topTwoScores[0] ?? 0) - (topTwoScores[1] ?? 0)) : 100;
-  const hybridAllowed = topSpread < 2 && confidence < 0.4;
+  const categoryScores = getJobDiscoveryCategoryScores(normalized);
+  console.log("Trait Scores:", categoryScores);
 
-  if (topKeys.length < 2) {
-    return (
-      (topTraitScore > 40 && topTrait ? getSingleTraitJobArchetype(topTrait, topTraitScore) : null) ??
-      getSingleTraitJobArchetype(topTrait || "Analytical", Math.max(35, topTraitScore))
-    );
+  const sortedTraits = Object.entries(categoryScores).sort((a, b) => b[1] - a[1]) as Array<
+    [JobDiscoveryCategory, number]
+  >;
+  const topTrait = sortedTraits[0];
+  const secondTrait = sortedTraits[1];
+
+  if (!topTrait) {
+    return null;
   }
 
-  if (executionScore > 65 && otherScores.every((value) => value < 20)) {
-    const entrepreneur = state.mod.archetypes.find((arch) => arch.id === "entrepreneur");
-    if (entrepreneur) {
-      return {
-        arch: entrepreneur,
-        score: ranked.find((entry) => entry.arch.id === "entrepreneur")?.score ?? 92,
-      } satisfies RankedArchetype;
-    }
-  }
+  const scoreValues = sortedTraits.map(([, score]) => score);
+  const scoreRange = scoreValues.length ? Math.max(...scoreValues) - Math.min(...scoreValues) : 0;
+  const topDiff = secondTrait ? Math.abs(topTrait[1] - secondTrait[1]) : 100;
+  const isHybrid = Boolean(secondTrait && (topDiff < 5 || scoreRange < 5));
+  const primaryType = topTrait[0];
+  const secondaryType = isHybrid ? secondTrait?.[0] : undefined;
 
-  const [t1, t2] = topKeys.map(getJobCategoryLabel);
-  const key1 = `${t1}-${t2}`;
-  const key2 = `${t2}-${t1}`;
-  const mapped = JOB_DISCOVERY_COMBINATION_MAP[key1] ?? JOB_DISCOVERY_COMBINATION_MAP[key2];
-
-  if (mapped && topTraitScore > 35) {
-    return {
-      arch: createDerivedJobArchetype(
-        `job-combo-${key1.toLowerCase().replace(/[^a-z]+/g, "-")}`,
-        mapped,
-      ),
-      score: Math.min(97, (ranked[0]?.score ?? 74) + 2),
-    } satisfies RankedArchetype;
-  }
-
-  if (hybridAllowed) {
-    return (
-      (topTraitScore > 40 && topTrait ? getSingleTraitJobArchetype(topTrait, topTraitScore) : null) ??
-      ({
-        arch: createDerivedJobArchetype("hybrid-professional", {
-          type: "Hybrid Professional",
-          sub: "Balanced profile with overlapping strengths across multiple work styles",
-          jobs: ["Program Generalist", "Strategy Coordinator", "Cross-Functional Associate"],
-        }),
-        score: Math.min(95, ranked[0]?.score ?? 72),
-      } satisfies RankedArchetype)
-    );
-  }
-
-  if (mapped) {
-    return {
-      arch: createDerivedJobArchetype(
-        `job-combo-${key1.toLowerCase().replace(/[^a-z]+/g, "-")}`,
-        mapped,
-      ),
-      score: Math.min(97, (ranked[0]?.score ?? 74) + 2),
-    } satisfies RankedArchetype;
-  }
-
-  return (
-    getSingleTraitJobArchetype(topTrait, Math.max(35, topTraitScore)) ??
-    {
-      arch: createDerivedJobArchetype("job-single-analytical", JOB_DISCOVERY_SINGLE_TRAIT_MAP.Analytical),
-      score: Math.min(95, ranked[0]?.score ?? 72),
-    } satisfies RankedArchetype
-  );
+  return {
+    arch: createDerivedJobArchetype(
+      `job-type-${primaryType.toLowerCase().replace(/[^a-z]+/g, "-")}`,
+      {
+        type: isHybrid ? "Hybrid" : primaryType,
+        sub: createJobDiscoveryExplanation(primaryType, secondaryType),
+        jobs: [],
+      },
+      ["Trait-driven profiling"],
+    ),
+    score: Math.min(97, (ranked[0]?.score ?? 72) + (isHybrid ? 0 : 1)),
+    // Keep a deterministic tie-break hint in id for debugging without exposing roles.
+  } satisfies RankedArchetype;
 }
 
 function getHybridBest(ranked: RankedArchetype[]) {

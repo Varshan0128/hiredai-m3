@@ -25,6 +25,7 @@ interface ResultSummary {
   roles: string[];
   confidence: number;
   topTraits: string[];
+  showTopTraits: boolean;
 }
 
 interface AnswerHistoryItem {
@@ -53,8 +54,8 @@ function isResumeBuilderBest(
 
 function isJobDiscoveryBest(
   best: PsychometricEngineResult["best"],
-): best is Extract<NonNullable<PsychometricEngineResult["best"]>, { type: string; sub: string; jobs: string[] }> {
-  return Boolean(best && "type" in best && "sub" in best && "jobs" in best);
+): best is Extract<NonNullable<PsychometricEngineResult["best"]>, { type: string; sub: string }> {
+  return Boolean(best && "type" in best && "sub" in best);
 }
 
 function buildResultSummary(
@@ -77,16 +78,18 @@ function buildResultSummary(
       roles: [best.role, best.alt],
       confidence: result.confidence,
       topTraits,
+      showTopTraits: true,
     };
   }
 
   if (module === "job_discovery" && isJobDiscoveryBest(best)) {
     return {
       headline: best.type,
-      description: `${best.sub}. Your strongest patterns point toward ${traitPair}.${hybridNote}${explanation}`,
-      roles: best.jobs.slice(0, 3),
+      description: best.sub,
+      roles: [],
       confidence: result.confidence,
       topTraits,
+      showTopTraits: false,
     };
   }
 
@@ -96,6 +99,7 @@ function buildResultSummary(
     roles: [],
     confidence: result.confidence,
     topTraits,
+    showTopTraits: true,
   };
 }
 
@@ -288,9 +292,11 @@ export default function PsychometricFlow({ module }: PsychometricFlowProps) {
                 <p className="font-['Poppins:Medium',sans-serif] text-neutral-800">
                   Confidence score: {resultSummary.confidence}%
                 </p>
-                <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
-                  Top traits: {formatTraitPair(resultSummary.topTraits)}
-                </p>
+                {resultSummary.showTopTraits ? (
+                  <p className="mt-2 font-['Poppins:Regular',sans-serif] text-neutral-600">
+                    Top traits: {formatTraitPair(resultSummary.topTraits)}
+                  </p>
+                ) : null}
               </div>
               {resultSummary.roles.length ? (
                 <div className="mt-6 text-left">
